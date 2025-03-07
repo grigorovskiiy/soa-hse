@@ -1,0 +1,99 @@
+openapi: 3.1.0
+info:
+  title: API Gateway Service
+  version: 1.0.0
+
+paths:
+  /register:
+    post:
+      summary: Зарегистрировать пользователя
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserGetRegisterLogin'
+        required: true
+      responses:
+        '200':
+          description: Пользователь зарегистрирован
+        '400':
+          description: Некорректные параметры запроса
+  /login:
+    post:
+      summary: Залогинить пользователя
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserGetRegisterLogin'
+        required: true
+      responses:
+        '200':
+          description: Пользователь залогинен
+        '400':
+          description: Некорректные параметры запроса
+  /get_user_info:
+    get:
+      summary: Получить информацию о пользователе
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserGetRegisterLogin'
+        required: true
+      responses:
+        '200':
+          description: Информация получена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Некорректные параметры запроса
+  /update_user_info:
+    put:
+      summary: Обновить информацию о пользователе
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      responses:
+        '200':
+          description: Информация обновлена
+        '400':
+          description: Некорректные параметры запроса
+
+
+
+components:
+  schemas:
+    UserGetRegisterLogin:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        login:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        login:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        name:
+          type: string
+        surname:
+          type: string
