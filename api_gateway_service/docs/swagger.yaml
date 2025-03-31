@@ -1,0 +1,144 @@
+definitions:
+  repository.UserGetRegisterLogin:
+    properties:
+      email:
+        type: string
+      login:
+        type: string
+      password:
+        type: string
+    type: object
+  repository.UserUpdate:
+    properties:
+      email:
+        type: string
+      login:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      surname:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  title: Swagger  API Gateway Service
+  version: "1.0"
+paths:
+  /get_user_info:
+    get:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Получить пользователя
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/repository.UserUpdate'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+      security:
+      - BearerAuth: []
+      summary: Получить пользователя
+      tags:
+      - User
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Войти в систему
+      parameters:
+      - description: Войти в систему
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/repository.UserGetRegisterLogin'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+      summary: Войти
+      tags:
+      - Auth
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: Зарегистрироваться в сервисе
+      parameters:
+      - description: Зарегистрировать пользователя
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/repository.UserGetRegisterLogin'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+      summary: Регистрация
+      tags:
+      - Auth
+  /update_user_info:
+    put:
+      consumes:
+      - application/json
+      description: Обновить данные о пользователе
+      parameters:
+      - description: Обновить пользователя
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/repository.UserUpdate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+      security:
+      - BearerAuth: []
+      summary: Обновить пользователя
+      tags:
+      - User
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

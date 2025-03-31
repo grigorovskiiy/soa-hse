@@ -19,7 +19,6 @@ type DbUser struct {
 
 type UserUpdate struct {
 	bun.BaseModel `bun:"table:users,select:users"`
-	Id            int    `bun:"id,pk,autoincrement" json:"id"`
 	Name          string `bun:"name" json:"name"`
 	Surname       string `bun:"surname" json:"surname"`
 	Email         string `bun:"email" json:"email"`
@@ -28,9 +27,7 @@ type UserUpdate struct {
 }
 
 type UserGetRegisterLogin struct {
-	bun.BaseModel `bun:"table:users,select:users"`
-	Id            int    `bun:"id,pk,autoincrement" json:"id"`
-	Password      string `bun:"password" json:"password"`
-	Login         string `bun:"login" json:"login"`
-	Email         string `bun:"email" json:"email"`
+	Password string `bun:"password" json:"password"`
+	Login    string `bun:"login" json:"login"`
+	Email    string `bun:"email" json:"email"`
 }

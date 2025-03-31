@@ -1,6 +1,7 @@
 package main
 
 import (
+	_ "auth/api_gateway_service/docs"
 	"auth/api_gateway_service/internal/api"
 	"auth/api_gateway_service/internal/application"
 	"auth/api_gateway_service/internal/infrastructure"
@@ -16,6 +17,13 @@ func init() {
 	}
 }
 
+// @title Swagger  API Gateway Service
+// @version 1.0
+// @host localhost:8080
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @BasePath /
 func main() {
 	addOpts := fx.Options(
 		fx.Provide(application.NewGatewayApp),
