@@ -1,0 +1,107 @@
+specification {
+  element actor
+  element system
+  element component
+}
+
+model {
+  user = actor 'User' {
+    description 'A user of my software system'
+    style {
+      shape person
+    }
+  }
+  system = system 'System' {
+    description 'My software system'
+    frontend  = component 'Frontend' {
+        description 'Frontend'   
+        style {
+            icon tech:nextjs
+        }
+    }
+    backend = component 'Backend Services' {
+        description 'Backend'
+        style {
+            icon tech:go
+        }
+        api-gateway = component 'API-Gateway' {
+            description 'Get requests from UI'
+        }
+        user-service = component 'User Service' {
+            description 'Users reg and auth'
+            user-service-api = component 'User Service API' {
+            }
+            
+        }
+        user-db = component 'User DB'{
+            description 'PostgreSQL'
+            style {
+                icon tech:postgresql
+                shape storage
+            }
+        }
+        statistic-service = component 'Statistic Service' {
+            description 'Calculate statistics'
+            statistic-service-api = component 'Statistic Service API' {
+            }
+        }
+        message-broker = component 'Message broker' {
+            description 'Kafka'
+            style {
+                icon tech:kafka
+                shape queue
+            }
+        }
+        statistic-db = component 'Statistic DB' {
+            description 'Clickhouse'
+            style {
+                shape storage
+            }
+        }
+        posts-service = component 'Posts service' {
+            description 'Posts and comments'
+            posts-service-api = component 'Posts Service API' {
+            }
+        }
+        posts-db = component 'Posts DB' {
+            description 'PostgreSQL'
+            style {
+              icon tech:postgresql
+              shape storage 
+            }
+        }
+        
+    }
+    
+
+
+  }
+  user -> frontend 'opens in browser'
+  user -> system 'uses'
+  frontend -> api-gateway 'fetches via HTTPS'
+  api-gateway -> user-service-api 'users registration and authentication'
+  user-service-api -> user-db 'save users info'
+  api-gateway -> message-broker 'add likes, comments, views'
+  message-broker -> statistic-service-api 'get likes, posts, views'
+  api-gateway -> statistic-service-api 'get statitistics'
+  statistic-service-api -> statistic-db 'save statistics'
+  api-gateway -> posts-service-api 'add posts, comments'
+  posts-service-api -> posts-db 'save posts and comments'
+
+}
+
+views {
+  view index {
+    title 'Landscape view'
+
+    include *
+  }
+
+  view of system {
+    include *
+
+    style user {
+      color muted
+    }
+  }
+}
