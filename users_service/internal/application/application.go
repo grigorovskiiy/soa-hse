@@ -1,48 +1,134 @@
 package application
 
 import (
-	"auth/users_service/internal/infrastructure/repository"
-	"github.com/golang-jwt/jwt/v5"
+	"auth/users_service/internal/infrastructure"
+	"auth/users_service/internal/infrastructure/models"
+	"encoding/json"
+	"io"
+	"net/http"
 )
 
-var secretKey = []byte("secret-key")
-
+type UsersService interface {
+	Register(user *models.UserGetRegisterLogin) error
+	Login(user *models.UserGetRegisterLogin) (string, error)
+	UpdateUserInfo(user *models.UserUpdate) error
+	GetUserInfo(user *models.UserGetRegisterLogin) (*models.UserUpdate, error)
+}
 type UsersApp struct {
-	R repository.Repository
+	Service UsersService
 }
 
-func NewUsersApp(r repository.Repository) *UsersApp {
-	return &UsersApp{r}
+func NewUsersApp(service UsersService) *UsersApp {
+	return &UsersApp{Service: service}
 }
 
-func (a *UsersApp) Register(user *repository.UserGetRegisterLogin) error {
-	return a.R.Register(user)
-}
-
-func (a *UsersApp) Login(user *repository.UserGetRegisterLogin) (string, error) {
-	err := a.R.Login(user)
+func (a *UsersApp) Register(w http.ResponseWriter, r *http.Request) {
+	d, err := io.ReadAll(r.Body)
 	if err != nil {
-		return "", err
+		infrastructure.Logger.Error(err.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
 
-	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"login":    user.Login,
-		"password": user.Password,
-		"email":    user.Email,
-	})
-
-	token, err := claims.SignedString(secretKey)
+	var req models.UserGetRegisterLogin
+	err = json.Unmarshal(d, &req)
 	if err != nil {
-		return "", nil
+		infrastructure.Logger.Error(err.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
 
-	return token, nil
+	err = a.Service.Register(&req)
+	if err != nil {
+		infrastructure.Logger.Error(err.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(err.Error())
+		return
+	}
+
+	_ = json.NewEncoder(w).Encode("Пользователь зарегистрирован")
+	w.WriteHeader(http.StatusOK)
 }
 
-func (a *UsersApp) UpdateUserInfo(user *repository.UserUpdate) error {
-	return a.R.UpdateUserInfo(user)
+func (a *UsersApp) Login(w http.ResponseWriter, r *http.Request) {
+	d, err := io.ReadAll(r.Body)
+	if err != nil {
+		infrastructure.Logger.Error(err.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	var req models.UserGetRegisterLogin
+	err = json.Unmarshal(d, &req)
+	if err != nil {
+		infrastructure.Logger.Error(err.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	token, err := a.Service.Login(&req)
+	if err != nil {
+		infrastructure.Logger.Error(err.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(err.Error())
+		return
+	}
+
+	_ = json.NewEncoder(w).Encode(token)
+	w.WriteHeader(http.StatusOK)
 }
 
-func (a *UsersApp) GetUserInfo(user *repository.UserGetRegisterLogin) (*repository.UserUpdate, error) {
-	return a.R.GetUserInfo(user)
+func (a *UsersApp) UpdateUserInfo(w http.ResponseWriter, r *http.Request) {
+	login := r.Header.Get("Login")
+	password := r.Header.Get("Password")
+
+	d, err := io.ReadAll(r.Body)
+	if err != nil {
+		infrastructure.Logger.Error(err.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	var req models.UserUpdate
+	err = json.Unmarshal(d, &req)
+	if err != nil {
+		infrastructure.Logger.Error(err.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	if password != req.Password || login != req.Login {
+		infrastructure.Logger.Error("No privileges")
+		w.WriteHeader(http.StatusUnauthorized)
+		_ = json.NewEncoder(w).Encode("No privileges")
+		return
+	}
+
+	err = a.Service.UpdateUserInfo(&req)
+	if err != nil {
+		infrastructure.Logger.Error(err.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(err.Error())
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func (a *UsersApp) GetUserInfo(w http.ResponseWriter, r *http.Request) {
+	login := r.Header.Get("Login")
+	password := r.Header.Get("Password")
+
+	req := models.UserGetRegisterLogin{Login: login, Password: password}
+
+	user, err := a.Service.GetUserInfo(&req)
+	if err != nil {
+		infrastructure.Logger.Error(err.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(err.Error())
+		return
+	}
+
+	_ = json.NewEncoder(w).Encode(user)
+	w.WriteHeader(http.StatusOK)
 }

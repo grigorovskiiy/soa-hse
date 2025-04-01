@@ -1,4 +1,4 @@
-package repository
+package models
 
 type UserUpdate struct {
 	Name     string `json:"name"`

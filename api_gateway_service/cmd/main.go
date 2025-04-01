@@ -2,7 +2,6 @@ package main
 
 import (
 	_ "auth/api_gateway_service/docs"
-	"auth/api_gateway_service/internal/api"
 	"auth/api_gateway_service/internal/application"
 	"auth/api_gateway_service/internal/infrastructure"
 	"auth/api_gateway_service/internal/server"
@@ -27,7 +26,6 @@ func init() {
 func main() {
 	addOpts := fx.Options(
 		fx.Provide(application.NewGatewayApp),
-		fx.Provide(api.NewApiGatewayService),
 		fx.Provide(server.NewServer),
 		fx.Invoke(server.RunServer),
 		fx.Invoke(infrastructure.InitLogger),
