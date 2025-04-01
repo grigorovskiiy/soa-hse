@@ -5,10 +5,11 @@ networks:
     driver: bridge
 
 volumes:
-  postgres_data:
+  users_postgres_data:
+  posts_postgres_data:
 
 services:
-  postgres:
+  users-postgres:
     image: postgres:14.8-alpine3.18
     environment:
       POSTGRES_DB: "users_db"
@@ -16,11 +17,26 @@ services:
       POSTGRES_PASSWORD: "password"
       PGDATA: "/var/lib/postgresql/data/pgdata"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - users_postgres_data:/var/lib/postgresql/data
     networks:
       - soa-network
     ports:
       - "5432:5432"
+
+
+  posts-postgres:
+    image: postgres:14.8-alpine3.18
+    environment:
+      POSTGRES_DB: "posts_db"
+      POSTGRES_USER: "username"
+      POSTGRES_PASSWORD: "password"
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+    volumes:
+      - posts_postgres_data:/var/lib/postgresql/data
+    networks:
+      - soa-network
+    ports:
+      - "5433:5432"
 
   api-gateway-service:
     build:
@@ -30,8 +46,6 @@ services:
       - "8080:8080"
     networks:
       - soa-network
-    depends_on:
-      - postgres
 
   users-service:
     build:
@@ -43,4 +57,5 @@ services:
       - soa-network
     depends_on:
       - api-gateway-service
+      - users-postgres
 

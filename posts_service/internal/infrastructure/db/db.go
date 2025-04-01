@@ -1,21 +1,20 @@
 package db
 
 import (
-	"auth/users_service/internal/infrastructure"
-	"auth/users_service/internal/infrastructure/repository"
+	"auth/posts_service/internal/infrastructure"
+	"auth/posts_service/internal/infrastructure/models"
 	"context"
 	"database/sql"
 	"fmt"
 	_ "github.com/jackc/pgx/v5/stdlib"
-	"github.com/uptrace/bun/dialect/pgdialect"
-
 	"github.com/uptrace/bun"
+	"github.com/uptrace/bun/dialect/pgdialect"
 	"os"
 )
 
 func InitDb() *bun.DB {
-	dsn := fmt.Sprintf("postgres://%s:%s@users-postgres%s/%s?sslmode=disable",
-		os.Getenv("USERS_POSTGRES_USER"), os.Getenv("USERS_POSTGRES_PASSWORD"), os.Getenv("USERS_POSTGRES_PORT"), os.Getenv("USERS_POSTGRES_DB"))
+	dsn := fmt.Sprintf("postgres://%s:%s@localhost%s/%s?sslmode=disable",
+		os.Getenv("POSTS_POSTGRES_USER"), os.Getenv("POSTS_POSTGRES_PASSWORD"), os.Getenv("POSTS_POSTGRES_PORT"), os.Getenv("POSTS_POSTGRES_DB"))
 
 	sqldb, err := sql.Open("pgx", dsn)
 	if err != nil {
@@ -25,7 +24,7 @@ func InitDb() *bun.DB {
 	db := bun.NewDB(sqldb, pgdialect.New())
 	_, err = db.NewCreateTable().
 		IfNotExists().
-		Model((*repository.DbUser)(nil)).
+		Model((*models.DbPost)(nil)).
 		Exec(context.Background())
 
 	if err != nil {

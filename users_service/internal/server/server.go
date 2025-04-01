@@ -1,7 +1,7 @@
 package server
 
 import (
-	"auth/users_service/internal/api"
+	"auth/users_service/internal/application"
 	"context"
 	"errors"
 	"go.uber.org/fx"
@@ -9,13 +9,13 @@ import (
 	"os"
 )
 
-func NewServer(s *api.UsersService) *http.Server {
+func NewServer(app *application.UsersApp) *http.Server {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/register", http.HandlerFunc(s.Register))
-	mux.HandleFunc("/login", http.HandlerFunc(s.Login))
-	mux.HandleFunc("/get_user_info", http.HandlerFunc(s.GetUserInfo))
-	mux.HandleFunc("/update_user_info", http.HandlerFunc(s.UpdateUserInfo))
+	mux.HandleFunc("/register", http.HandlerFunc(app.Register))
+	mux.HandleFunc("/login", http.HandlerFunc(app.Login))
+	mux.HandleFunc("/get_user_info", http.HandlerFunc(app.GetUserInfo))
+	mux.HandleFunc("/update_user_info", http.HandlerFunc(app.UpdateUserInfo))
 
 	return &http.Server{
 		Addr:    os.Getenv("USERS_SERVICE_PORT"),

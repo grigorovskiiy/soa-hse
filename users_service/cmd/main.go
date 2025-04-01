@@ -22,8 +22,8 @@ func main() {
 		fx.Invoke(infrastructure.InitLogger),
 		fx.Provide(db.InitDb),
 		fx.Provide(repository.NewUsersRepository),
-		fx.Provide(application.NewUsersApp),
 		fx.Provide(api.NewUsersService),
+		fx.Provide(application.NewUsersApp),
 		fx.Provide(server.NewServer),
 		fx.Invoke(server.RunServer),
 	)
