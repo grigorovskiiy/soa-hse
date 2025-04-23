@@ -1,12 +1,12 @@
 package server
 
 import (
-	"auth/posts_service/internal/application"
-	"auth/posts_service/internal/infrastructure"
-	pb "auth/protos"
 	"context"
 	"errors"
 	"fmt"
+	"github.com/grigorovskiiy/soa-hse/posts_service/internal/application"
+	"github.com/grigorovskiiy/soa-hse/posts_service/internal/infrastructure"
+	pb "github.com/grigorovskiiy/soa-hse/protos"
 	"go.uber.org/fx"
 	"google.golang.org/grpc"
 	"net"
@@ -14,7 +14,7 @@ import (
 )
 
 func NewServer(s *application.PostsServiceServer) (*grpc.Server, net.Listener) {
-	lis, err := net.Listen("tcp", fmt.Sprintf("localhost%s", os.Getenv("POST_SERVICE_PORT")))
+	lis, err := net.Listen("tcp", fmt.Sprintf("posts-service%s", os.Getenv("POST_SERVICE_PORT")))
 	if err != nil {
 		infrastructure.Logger.Error(fmt.Sprintf("failed to listen: %s", err.Error()))
 		return nil, nil

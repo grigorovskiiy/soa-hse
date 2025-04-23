@@ -4,7 +4,7 @@ type LoginError struct {
 }
 
 func (err LoginError) Error() string {
-	return "Login without registration"
+	return "Login error"
 }
 
 type AlreadyRegisteredError struct {

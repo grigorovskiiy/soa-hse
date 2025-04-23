@@ -17,17 +17,19 @@ type DbUser struct {
 	UpdatedAt     time.Time `bun:"updated_at" json:"updated_at"`
 }
 
-type UserUpdate struct {
-	bun.BaseModel `bun:"table:users,select:users"`
-	Name          string `bun:"name" json:"name"`
-	Surname       string `bun:"surname" json:"surname"`
-	Email         string `bun:"email" json:"email"`
-	Password      string `bun:"password" json:"password"`
-	Login         string `bun:"login" json:"login"`
+type UserUpdateRequest struct {
+	Name    string `json:"name"`
+	Surname string `json:"surname"`
+	Email   string `json:"email"`
 }
 
-type UserGetRegisterLogin struct {
-	Password string `bun:"password" json:"password"`
-	Login    string `bun:"login" json:"login"`
-	Email    string `bun:"email" json:"email"`
+type RegisterRequest struct {
+	Login    string `json:"login"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+type GetLoginRequest struct {
+	Login    string `json:"login"`
+	Password string `json:"password"`
 }

@@ -1,9 +1,9 @@
 package server
 
 import (
-	"auth/users_service/internal/application"
 	"context"
 	"errors"
+	"github.com/grigorovskiiy/soa-hse/users_service/internal/application"
 	"go.uber.org/fx"
 	"net/http"
 	"os"

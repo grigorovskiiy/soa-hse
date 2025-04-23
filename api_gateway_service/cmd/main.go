@@ -1,10 +1,11 @@
 package main
 
 import (
-	_ "auth/api_gateway_service/docs"
-	"auth/api_gateway_service/internal/application"
-	"auth/api_gateway_service/internal/infrastructure"
-	"auth/api_gateway_service/internal/server"
+	_ "github.com/grigorovskiiy/soa-hse/api_gateway_service/docs"
+	"github.com/grigorovskiiy/soa-hse/api_gateway_service/internal/application"
+	"github.com/grigorovskiiy/soa-hse/api_gateway_service/internal/infrastructure"
+	"github.com/grigorovskiiy/soa-hse/api_gateway_service/internal/infrastructure/clients"
+	"github.com/grigorovskiiy/soa-hse/api_gateway_service/internal/server"
 	"github.com/joho/godotenv"
 
 	"go.uber.org/fx"
@@ -25,10 +26,10 @@ func init() {
 // @BasePath /
 func main() {
 	addOpts := fx.Options(
+		fx.Provide(clients.NewGRPCClients),
 		fx.Provide(application.NewGatewayApp),
 		fx.Provide(server.NewServer),
 		fx.Invoke(server.RunServer),
-		fx.Invoke(infrastructure.InitLogger),
 	)
 
 	fx.New(addOpts).Run()

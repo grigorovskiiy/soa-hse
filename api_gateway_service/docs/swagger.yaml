@@ -1,5 +1,65 @@
 definitions:
-  repository.UserGetRegisterLogin:
+  models.CreatePostRequest:
+    properties:
+      post_description:
+        type: string
+      post_name:
+        type: string
+      security_flag:
+        type: boolean
+      tags:
+        items:
+          type: string
+        type: array
+    type: object
+  models.GetDeletePostRequest:
+    properties:
+      post_id:
+        type: integer
+    type: object
+  models.GetLoginRequest:
+    properties:
+      login:
+        type: string
+      password:
+        type: string
+    type: object
+  models.GetPostListRequest:
+    properties:
+      page:
+        type: integer
+      page_size:
+        type: integer
+    type: object
+  models.GetPostListResponse:
+    properties:
+      posts:
+        items:
+          $ref: '#/definitions/models.GetPostResponse'
+        type: array
+    type: object
+  models.GetPostResponse:
+    properties:
+      created_at:
+        type: string
+      post_description:
+        type: string
+      post_id:
+        type: integer
+      post_name:
+        type: string
+      security_flag:
+        type: boolean
+      tags:
+        items:
+          type: string
+        type: array
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  models.RegisterRequest:
     properties:
       email:
         type: string
@@ -8,7 +68,22 @@ definitions:
       password:
         type: string
     type: object
-  repository.UserUpdate:
+  models.UpdatePostRequest:
+    properties:
+      post_description:
+        type: string
+      post_id:
+        type: integer
+      post_name:
+        type: string
+      security_flag:
+        type: boolean
+      tags:
+        items:
+          type: string
+        type: array
+    type: object
+  models.UserUpdateRequest:
     properties:
       email:
         type: string
@@ -27,6 +102,142 @@ info:
   title: Swagger  API Gateway Service
   version: "1.0"
 paths:
+  /create_post:
+    post:
+      description: Создать пост
+      parameters:
+      - description: Информация о посте
+        in: body
+        name: post_info
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreatePostRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Создать пост
+      tags:
+      - Post
+  /delete_post:
+    delete:
+      description: Удалить пост
+      parameters:
+      - description: ID поста
+        in: body
+        name: post_id
+        required: true
+        schema:
+          $ref: '#/definitions/models.GetDeletePostRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Удалить пост
+      tags:
+      - Post
+  /get_post:
+    get:
+      description: Получить пост
+      parameters:
+      - description: ID поста
+        in: body
+        name: post_id
+        required: true
+        schema:
+          $ref: '#/definitions/models.GetDeletePostRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.GetPostResponse'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Получить пост
+      tags:
+      - Post
+  /get_post_list:
+    get:
+      description: Получить пагинированный список постов
+      parameters:
+      - description: Параметры списка
+        in: body
+        name: list_params
+        required: true
+        schema:
+          $ref: '#/definitions/models.GetPostListRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.GetPostListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Получить пагинированный список постов
+      tags:
+      - Post
   /get_user_info:
     get:
       consumes:
@@ -38,7 +249,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/repository.UserUpdate'
+            $ref: '#/definitions/models.GetLoginRequest'
         "400":
           description: Bad Request
           schema:
@@ -65,7 +276,7 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/repository.UserGetRegisterLogin'
+          $ref: '#/definitions/models.GetLoginRequest'
       produces:
       - application/json
       responses:
@@ -91,7 +302,7 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/repository.UserGetRegisterLogin'
+          $ref: '#/definitions/models.RegisterRequest'
       produces:
       - application/json
       responses:
@@ -104,6 +315,40 @@ paths:
       summary: Регистрация
       tags:
       - Auth
+  /update_post:
+    put:
+      description: Обновить пост
+      parameters:
+      - description: Информация о посте
+        in: body
+        name: post_info
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdatePostRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Обновить пост
+      tags:
+      - Post
   /update_user_info:
     put:
       consumes:
@@ -115,7 +360,7 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/repository.UserUpdate'
+          $ref: '#/definitions/models.UserUpdateRequest'
       produces:
       - application/json
       responses:

@@ -1,10 +1,9 @@
 package server
 
 import (
-	"auth/api_gateway_service/internal/api"
-	"auth/api_gateway_service/internal/application"
 	"context"
 	"errors"
+	"github.com/grigorovskiiy/soa-hse/api_gateway_service/internal/application"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 	"go.uber.org/fx"
 	"net/http"
@@ -22,7 +21,7 @@ func NewServer(a *application.GatewayApp) *http.Server {
 	mux.Handle("/delete_post", http.HandlerFunc(a.DeletePost))
 	mux.Handle("/update_post", http.HandlerFunc(a.UpdatePost))
 	mux.Handle("/get_post", http.HandlerFunc(a.GetPost))
-	mux.Handle("/post_list", http.HandlerFunc(a.GetPostList))
+	mux.Handle("/get_post_list", http.HandlerFunc(a.GetPostList))
 	mux.Handle("/swagger/", httpSwagger.Handler(httpSwagger.URL("swagger/swagger/doc.json")))
 
 	return &http.Server{

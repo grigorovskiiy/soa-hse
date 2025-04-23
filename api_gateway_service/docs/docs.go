@@ -15,6 +15,222 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/create_post": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Создать пост",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Post"
+                ],
+                "summary": "Создать пост",
+                "parameters": [
+                    {
+                        "description": "Информация о посте",
+                        "name": "post_info",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CreatePostRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/delete_post": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Удалить пост",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Post"
+                ],
+                "summary": "Удалить пост",
+                "parameters": [
+                    {
+                        "description": "ID поста",
+                        "name": "post_id",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.GetDeletePostRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/get_post": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Получить пост",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Post"
+                ],
+                "summary": "Получить пост",
+                "parameters": [
+                    {
+                        "description": "ID поста",
+                        "name": "post_id",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.GetDeletePostRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.GetPostResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/get_post_list": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Получить пагинированный список постов",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Post"
+                ],
+                "summary": "Получить пагинированный список постов",
+                "parameters": [
+                    {
+                        "description": "Параметры списка",
+                        "name": "list_params",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.GetPostListRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.GetPostListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/get_user_info": {
             "get": {
                 "security": [
@@ -37,7 +253,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/repository.UserUpdate"
+                            "$ref": "#/definitions/models.GetLoginRequest"
                         }
                     },
                     "400": {
@@ -78,7 +294,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/repository.UserGetRegisterLogin"
+                            "$ref": "#/definitions/models.GetLoginRequest"
                         }
                     }
                 ],
@@ -118,7 +334,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/repository.UserGetRegisterLogin"
+                            "$ref": "#/definitions/models.RegisterRequest"
                         }
                     }
                 ],
@@ -128,6 +344,60 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/update_post": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Обновить пост",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Post"
+                ],
+                "summary": "Обновить пост",
+                "parameters": [
+                    {
+                        "description": "Информация о посте",
+                        "name": "post_info",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.UpdatePostRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "type": "string"
                         }
@@ -160,7 +430,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/repository.UserUpdate"
+                            "$ref": "#/definitions/models.UserUpdateRequest"
                         }
                     }
                 ],
@@ -188,7 +458,100 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "repository.UserGetRegisterLogin": {
+        "models.CreatePostRequest": {
+            "type": "object",
+            "properties": {
+                "post_description": {
+                    "type": "string"
+                },
+                "post_name": {
+                    "type": "string"
+                },
+                "security_flag": {
+                    "type": "boolean"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "models.GetDeletePostRequest": {
+            "type": "object",
+            "properties": {
+                "post_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.GetLoginRequest": {
+            "type": "object",
+            "properties": {
+                "login": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.GetPostListRequest": {
+            "type": "object",
+            "properties": {
+                "page": {
+                    "type": "integer"
+                },
+                "page_size": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.GetPostListResponse": {
+            "type": "object",
+            "properties": {
+                "posts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.GetPostResponse"
+                    }
+                }
+            }
+        },
+        "models.GetPostResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "post_description": {
+                    "type": "string"
+                },
+                "post_id": {
+                    "type": "integer"
+                },
+                "post_name": {
+                    "type": "string"
+                },
+                "security_flag": {
+                    "type": "boolean"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.RegisterRequest": {
             "type": "object",
             "properties": {
                 "email": {
@@ -202,7 +565,30 @@ const docTemplate = `{
                 }
             }
         },
-        "repository.UserUpdate": {
+        "models.UpdatePostRequest": {
+            "type": "object",
+            "properties": {
+                "post_description": {
+                    "type": "string"
+                },
+                "post_id": {
+                    "type": "integer"
+                },
+                "post_name": {
+                    "type": "string"
+                },
+                "security_flag": {
+                    "type": "boolean"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "models.UserUpdateRequest": {
             "type": "object",
             "properties": {
                 "email": {

@@ -1,11 +1,11 @@
-module auth
+module github.com/grigorovskiiy/soa-hse
 
 go 1.23.0
 
 require (
-	github.com/IvanChumakov/hotel-booking-project v0.0.0-20250117105853-9b46e241ba5b
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/golang/protobuf v1.5.4
+	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.7.2
 	github.com/joho/godotenv v1.5.1
 	github.com/swaggo/http-swagger/v2 v2.0.2

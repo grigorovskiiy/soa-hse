@@ -4,7 +4,7 @@
 // - protoc             v3.12.4
 // source: protos/posts_service.proto
 
-package social_network
+package protos
 
 import (
 	context "context"

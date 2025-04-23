@@ -1,18 +1,18 @@
 package application
 
 import (
-	"auth/users_service/internal/infrastructure"
-	"auth/users_service/internal/infrastructure/models"
 	"encoding/json"
+	"github.com/grigorovskiiy/soa-hse/users_service/internal/infrastructure"
+	"github.com/grigorovskiiy/soa-hse/users_service/internal/infrastructure/models"
 	"io"
 	"net/http"
 )
 
 type UsersService interface {
-	Register(user *models.UserGetRegisterLogin) error
-	Login(user *models.UserGetRegisterLogin) (string, error)
-	UpdateUserInfo(user *models.UserUpdate) error
-	GetUserInfo(user *models.UserGetRegisterLogin) (*models.UserUpdate, error)
+	Register(*models.RegisterRequest) error
+	Login(*models.GetLoginRequest) (string, error)
+	UpdateUserInfo(*models.UserUpdateRequest, string) error
+	GetUserInfo(string) (*models.DbUser, error)
 }
 type UsersApp struct {
 	Service UsersService
@@ -23,112 +23,114 @@ func NewUsersApp(service UsersService) *UsersApp {
 }
 
 func (a *UsersApp) Register(w http.ResponseWriter, r *http.Request) {
+	logger := infrastructure.Logger.With("path", "/register")
+	logger.Info("request started")
 	d, err := io.ReadAll(r.Body)
 	if err != nil {
-		infrastructure.Logger.Error(err.Error())
+		logger.Error("read body error", "error", err.Error())
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	var req models.UserGetRegisterLogin
+	var req models.RegisterRequest
 	err = json.Unmarshal(d, &req)
 	if err != nil {
-		infrastructure.Logger.Error(err.Error())
+		logger.Error("unmarshal error", "error", err.Error())
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	err = a.Service.Register(&req)
 	if err != nil {
-		infrastructure.Logger.Error(err.Error())
+		logger.Error("service register error", "error", err.Error())
 		w.WriteHeader(http.StatusBadRequest)
 		_ = json.NewEncoder(w).Encode(err.Error())
 		return
 	}
 
-	_ = json.NewEncoder(w).Encode("Пользователь зарегистрирован")
 	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode("User is registered")
+	logger.Info("request finished")
 }
 
 func (a *UsersApp) Login(w http.ResponseWriter, r *http.Request) {
+	logger := infrastructure.Logger.With("path", "/login")
+	logger.Info("request started")
 	d, err := io.ReadAll(r.Body)
 	if err != nil {
-		infrastructure.Logger.Error(err.Error())
+		logger.Error("read body error", "error", err.Error())
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	var req models.UserGetRegisterLogin
+	var req models.GetLoginRequest
 	err = json.Unmarshal(d, &req)
 	if err != nil {
-		infrastructure.Logger.Error(err.Error())
+		logger.Error("unmarshal error", "error", err.Error())
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	token, err := a.Service.Login(&req)
 	if err != nil {
-		infrastructure.Logger.Error(err.Error())
+		logger.Error("service login error", "error", err.Error())
 		w.WriteHeader(http.StatusBadRequest)
 		_ = json.NewEncoder(w).Encode(err.Error())
 		return
 	}
 
-	_ = json.NewEncoder(w).Encode(token)
 	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(token)
+	logger.Info("request finished")
 }
 
 func (a *UsersApp) UpdateUserInfo(w http.ResponseWriter, r *http.Request) {
-	login := r.Header.Get("Login")
-	password := r.Header.Get("Password")
+	logger := infrastructure.Logger.With("path", "/updateUserInfo")
+	logger.Info("request started")
 
 	d, err := io.ReadAll(r.Body)
 	if err != nil {
-		infrastructure.Logger.Error(err.Error())
+		logger.Error("read body error", "error", err.Error())
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	var req models.UserUpdate
+	var req models.UserUpdateRequest
 	err = json.Unmarshal(d, &req)
 	if err != nil {
-		infrastructure.Logger.Error(err.Error())
+		logger.Error("unmarshal error", "error", err.Error())
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	login := r.Header.Get("Login")
 
-	if password != req.Password || login != req.Login {
-		infrastructure.Logger.Error("No privileges")
-		w.WriteHeader(http.StatusUnauthorized)
-		_ = json.NewEncoder(w).Encode("No privileges")
-		return
-	}
-
-	err = a.Service.UpdateUserInfo(&req)
+	err = a.Service.UpdateUserInfo(&req, login)
 	if err != nil {
-		infrastructure.Logger.Error(err.Error())
+		logger.Error("service update error", "error", err.Error())
 		w.WriteHeader(http.StatusBadRequest)
 		_ = json.NewEncoder(w).Encode(err.Error())
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode("User info is updated")
+	logger.Info("request finished")
 }
 
 func (a *UsersApp) GetUserInfo(w http.ResponseWriter, r *http.Request) {
+	logger := infrastructure.Logger.With("path", "/getUserInfo")
+	logger.Info("request started")
 	login := r.Header.Get("Login")
-	password := r.Header.Get("Password")
 
-	req := models.UserGetRegisterLogin{Login: login, Password: password}
-
-	user, err := a.Service.GetUserInfo(&req)
+	user, err := a.Service.GetUserInfo(login)
 	if err != nil {
-		infrastructure.Logger.Error(err.Error())
+		logger.Error("service get user info error", "error", err.Error())
 		w.WriteHeader(http.StatusBadRequest)
 		_ = json.NewEncoder(w).Encode(err.Error())
 		return
 	}
 
-	_ = json.NewEncoder(w).Encode(user)
 	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(user)
+	logger.Info("request finished")
 }

@@ -1,24 +1,25 @@
 package service
 
 import (
-	"auth/posts_service/internal/infrastructure/models"
-	pb "auth/protos"
+	"github.com/grigorovskiiy/soa-hse/posts_service/internal/infrastructure"
+	"github.com/grigorovskiiy/soa-hse/posts_service/internal/infrastructure/models"
+	pb "github.com/grigorovskiiy/soa-hse/protos"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"time"
 )
 
 type PostsRepository interface {
 	CreatePost(*models.DbPost) error
-	DeletePost(int32) error
-	UpdatePost(post *models.DbPost) error
-	GetPost(int32) (*models.DbPost, error)
+	DeletePost(int32, int32) error
+	UpdatePost(*models.DbPost) error
+	GetPost(int32, int32) (*models.DbPost, error)
 	GetPostList(int32, int32, int32) ([]*models.DbPost, error)
 }
 type PService struct {
 	repository PostsRepository
 }
 
-func NewUService(repository PostsRepository) *PService {
+func NewPService(repository PostsRepository) *PService {
 	return &PService{repository: repository}
 }
 
@@ -33,34 +34,51 @@ func (s *PService) CreatePost(pb *pb.PostDataRequest, userId int32) error {
 		SecurityFlag: pb.SecurityFlag,
 	}
 
-	return s.repository.CreatePost(&post)
+	if err := s.repository.CreatePost(&post); err != nil {
+		infrastructure.Logger.Error("create post error", "error", err.Error())
+		return err
+	}
+
+	return nil
 }
 
-func (s *PService) DeletePost(pb *pb.PostID) error {
-	return s.repository.DeletePost(pb.PostId)
+func (s *PService) DeletePost(pb *pb.PostID, userId int32) error {
+	if err := s.repository.DeletePost(pb.PostId, userId); err != nil {
+		infrastructure.Logger.Error("delete post error", "error", err.Error())
+		return err
+	}
+
+	return nil
 }
 
-func (s *PService) UpdatePost(pb *pb.UpdatePostRequest) error {
+func (s *PService) UpdatePost(pb *pb.UpdatePostRequest, userId int32) error {
 	post := models.DbPost{
 		UpdatedAt:    time.Now(),
-		Id:           int(pb.PostId.PostId),
+		Id:           int(pb.PostId),
 		Name:         pb.PostData.PostName,
 		Description:  pb.PostData.PostDescription,
 		SecurityFlag: pb.PostData.SecurityFlag,
 		Tags:         pb.PostData.Tags,
+		UserId:       int(userId),
 	}
 
-	return s.repository.UpdatePost(&post)
+	if err := s.repository.UpdatePost(&post); err != nil {
+		infrastructure.Logger.Error("update post error", "error", err.Error())
+		return err
+	}
+
+	return nil
 }
 
-func (s *PService) GetPost(p *pb.PostID) (*pb.PostDataResponse, error) {
-	postInfo, err := s.repository.GetPost(p.PostId)
+func (s *PService) GetPost(p *pb.PostID, userId int32) (*pb.PostDataResponse, error) {
+	postInfo, err := s.repository.GetPost(p.PostId, userId)
 	if err != nil {
+		infrastructure.Logger.Error("get post info error", "error", err.Error())
 		return nil, err
 	}
 
 	pb := pb.PostDataResponse{
-		PostId:          &pb.PostID{PostId: int32(postInfo.Id)},
+		PostId:          int32(postInfo.Id),
 		Tags:            postInfo.Tags,
 		PostName:        postInfo.Name,
 		PostDescription: postInfo.Description,
@@ -75,6 +93,7 @@ func (s *PService) GetPost(p *pb.PostID) (*pb.PostDataResponse, error) {
 func (s *PService) GetPostList(p *pb.ListPostsRequest, userId int32) (*pb.ListPostsResponse, error) {
 	posts, err := s.repository.GetPostList(p.Page, p.PageSize, userId)
 	if err != nil {
+		infrastructure.Logger.Error("get post list error", "error", err.Error())
 		return nil, err
 	}
 	pbPosts := pb.ListPostsResponse{
@@ -82,7 +101,7 @@ func (s *PService) GetPostList(p *pb.ListPostsRequest, userId int32) (*pb.ListPo
 	}
 	for ind, _ := range posts {
 		pbPosts.Posts[ind] = &pb.PostDataResponse{
-			PostId:          &pb.PostID{PostId: int32(posts[ind].Id)},
+			PostId:          int32(posts[ind].Id),
 			Tags:            posts[ind].Tags,
 			PostName:        posts[ind].Name,
 			PostDescription: posts[ind].Description,

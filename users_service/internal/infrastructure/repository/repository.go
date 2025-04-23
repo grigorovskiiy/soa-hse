@@ -1,11 +1,10 @@
 package repository
 
 import (
-	"auth/users_service/internal/errors"
-	"auth/users_service/internal/infrastructure/models"
 	"context"
+	"github.com/grigorovskiiy/soa-hse/users_service/internal/errors"
+	"github.com/grigorovskiiy/soa-hse/users_service/internal/infrastructure/models"
 	"github.com/uptrace/bun"
-	"time"
 )
 
 type UsersRepository struct {
@@ -16,7 +15,7 @@ func NewUsersRepository(db *bun.DB) *UsersRepository {
 	return &UsersRepository{db: db}
 }
 
-func (r *UsersRepository) Register(userInfo *models.UserGetRegisterLogin) error {
+func (r *UsersRepository) Register(userInfo *models.DbUser) error {
 	exists, err := r.db.NewSelect().
 		Model((*models.DbUser)(nil)).
 		Where("login = ?", userInfo.Login).
@@ -28,14 +27,7 @@ func (r *UsersRepository) Register(userInfo *models.UserGetRegisterLogin) error 
 		return errors.AlreadyRegisteredError{}
 	}
 
-	user := models.DbUser{
-		Email:     userInfo.Email,
-		Login:     userInfo.Login,
-		Password:  userInfo.Password,
-		CreatedAt: time.Now(),
-	}
-
-	_, err = r.db.NewInsert().Model(&user).Exec(context.Background())
+	_, err = r.db.NewInsert().Model(userInfo).Exec(context.Background())
 	if err != nil {
 		return err
 	}
@@ -43,7 +35,7 @@ func (r *UsersRepository) Register(userInfo *models.UserGetRegisterLogin) error 
 	return nil
 }
 
-func (r *UsersRepository) Login(userInfo *models.UserGetRegisterLogin) error {
+func (r *UsersRepository) Login(userInfo *models.GetLoginRequest) error {
 	exists, err := r.db.NewSelect().
 		Model((*models.DbUser)(nil)).
 		Where("login = ? and password = ?", userInfo.Login, userInfo.Password).
@@ -58,18 +50,8 @@ func (r *UsersRepository) Login(userInfo *models.UserGetRegisterLogin) error {
 	return nil
 }
 
-func (r *UsersRepository) UpdateUserInfo(userInfo *models.UserUpdate) error {
-	user := models.DbUser{
-		Email:     userInfo.Email,
-		Login:     userInfo.Login,
-		Password:  userInfo.Password,
-		UpdatedAt: time.Now(),
-		Name:      userInfo.Name,
-		Surname:   userInfo.Surname,
-	}
-
-	_, err := r.db.NewUpdate().Model(&user).Where("login = ?", user.Login).OmitZero().Exec(context.Background())
-
+func (r *UsersRepository) UpdateUserInfo(userInfo *models.DbUser, login string) error {
+	_, err := r.db.NewUpdate().Model(userInfo).Where("login = ?", login).OmitZero().Exec(context.Background())
 	if err != nil {
 		return err
 	}
@@ -77,11 +59,11 @@ func (r *UsersRepository) UpdateUserInfo(userInfo *models.UserUpdate) error {
 	return nil
 }
 
-func (r *UsersRepository) GetUserInfo(userInfo *models.UserGetRegisterLogin) (*models.UserUpdate, error) {
-	var user models.UserUpdate
+func (r *UsersRepository) GetUserInfo(userLogin string) (*models.DbUser, error) {
+	var user models.DbUser
 	err := r.db.NewSelect().
 		Model(&user).
-		Where("login = ?", userInfo.Login).
+		Where("login = ?", userLogin).
 		Scan(context.Background())
 
 	if err != nil {
@@ -89,4 +71,18 @@ func (r *UsersRepository) GetUserInfo(userInfo *models.UserGetRegisterLogin) (*m
 	}
 
 	return &user, nil
+}
+
+func (r *UsersRepository) GetUserID(login string) (int, error) {
+	var user models.DbUser
+	err := r.db.NewSelect().
+		Model(&user).
+		Where("login = ?", login).
+		Scan(context.Background())
+
+	if err != nil {
+		return 0, err
+	}
+
+	return user.Id, nil
 }

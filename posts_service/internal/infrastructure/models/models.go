@@ -10,7 +10,7 @@ type DbPost struct {
 	Id            int       `bun:"id,pk,autoincrement" json:"id"`
 	Name          string    `bun:"name" json:"name"`
 	Description   string    `bun:"description" json:"description"`
-	UserId        int       `bun:"user_id" json:"user_id"`
+	UserId        int       `bun:"user_id,type:uuid" json:"user_id"`
 	SecurityFlag  bool      `bun:"security_flag" json:"security_flag"`
 	CreatedAt     time.Time `bun:"created_at" json:"created_at"`
 	UpdatedAt     time.Time `bun:"updated_at" json:"updated_at"`

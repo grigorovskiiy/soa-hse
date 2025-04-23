@@ -1,24 +1,26 @@
 package db
 
 import (
-	"auth/posts_service/internal/infrastructure"
-	"auth/posts_service/internal/infrastructure/models"
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/grigorovskiiy/soa-hse/posts_service/internal/infrastructure"
+	"github.com/grigorovskiiy/soa-hse/posts_service/internal/infrastructure/models"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/pgdialect"
+	"go.uber.org/fx"
 	"os"
 )
 
-func InitDb() *bun.DB {
-	dsn := fmt.Sprintf("postgres://%s:%s@localhost%s/%s?sslmode=disable",
+func InitDb(lc fx.Lifecycle) *bun.DB {
+	dsn := fmt.Sprintf("postgres://%s:%s@posts-postgres%s/%s?sslmode=disable",
 		os.Getenv("POSTS_POSTGRES_USER"), os.Getenv("POSTS_POSTGRES_PASSWORD"), os.Getenv("POSTS_POSTGRES_PORT"), os.Getenv("POSTS_POSTGRES_DB"))
 
 	sqldb, err := sql.Open("pgx", dsn)
 	if err != nil {
-		infrastructure.Logger.Error(err.Error())
+		infrastructure.Logger.Error("open database error", "error", err.Error())
+		return nil
 	}
 
 	db := bun.NewDB(sqldb, pgdialect.New())
@@ -28,8 +30,15 @@ func InitDb() *bun.DB {
 		Exec(context.Background())
 
 	if err != nil {
-		infrastructure.Logger.Error(err.Error())
+		infrastructure.Logger.Error("create table error", "error", err.Error())
+		return nil
 	}
+
+	lc.Append(fx.Hook{
+		OnStop: func(ctx context.Context) error {
+			return db.Close()
+		},
+	})
 
 	return db
 }

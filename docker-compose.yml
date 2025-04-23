@@ -59,3 +59,17 @@ services:
       - api-gateway-service
       - users-postgres
 
+  posts-service:
+    build:
+      context: .
+      dockerfile: posts_service/Dockerfile
+    ports:
+      - "50051:50051"
+    networks:
+      - soa-network
+    depends_on:
+      - api-gateway-service
+      - posts-postgres
+
+
+
