@@ -3,7 +3,7 @@ package clients
 import (
 	"context"
 	"fmt"
-	"github.com/grigorovskiiy/soa-hse/api_gateway_service/internal/infrastructure"
+	"github.com/grigorovskiiy/soa-hse/api_gateway_service/internal/infrastructure/logger"
 	pb "github.com/grigorovskiiy/soa-hse/protos"
 	"go.uber.org/fx"
 	"google.golang.org/grpc"
@@ -20,7 +20,7 @@ func NewGRPCClients(lc fx.Lifecycle) (*GRPCClients, error) {
 		grpc.WithTransportCredentials(insecure.NewCredentials()))
 
 	if err != nil {
-		infrastructure.Logger.Error("error creating grpc clients connection", err.Error())
+		logger.Logger.Error("error creating grpc clients connection", err.Error())
 		return nil, err
 	}
 

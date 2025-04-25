@@ -4,33 +4,63 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/grigorovskiiy/soa-hse/posts_service/internal/infrastructure"
+	"github.com/grigorovskiiy/soa-hse/posts_service/internal/config"
+	"github.com/grigorovskiiy/soa-hse/posts_service/internal/infrastructure/logger"
 	"github.com/grigorovskiiy/soa-hse/posts_service/internal/infrastructure/models"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/pgdialect"
 	"go.uber.org/fx"
-	"os"
 )
 
-func InitDb(lc fx.Lifecycle) *bun.DB {
-	dsn := fmt.Sprintf("postgres://%s:%s@posts-postgres%s/%s?sslmode=disable",
-		os.Getenv("POSTS_POSTGRES_USER"), os.Getenv("POSTS_POSTGRES_PASSWORD"), os.Getenv("POSTS_POSTGRES_PORT"), os.Getenv("POSTS_POSTGRES_DB"))
+func CreateTable(db *bun.DB, model interface{}) error {
+	_, err := db.NewCreateTable().
+		IfNotExists().
+		Model(model).
+		Exec(context.Background())
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func CreateTables(db *bun.DB) error {
+	if err := CreateTable(db, (*models.DbPost)(nil)); err != nil {
+		logger.Logger.Error("create posts table error", "error", err.Error())
+		return err
+	}
+	if err := CreateTable(db, (*models.DbComment)(nil)); err != nil {
+		logger.Logger.Error("create comments table error", "error", err.Error())
+		return err
+	}
+	if err := CreateTable(db, (*models.DbLike)(nil)); err != nil {
+		logger.Logger.Error("create likes table error", "error", err.Error())
+		return err
+	}
+	if err := CreateTable(db, (*models.DbView)(nil)); err != nil {
+		logger.Logger.Error("create views table error", "error", err.Error())
+		return err
+	}
+
+	return nil
+}
+
+func InitDb(lc fx.Lifecycle, cfg *config.Config) *bun.DB {
+	dsn := fmt.Sprintf("postgres://%s:%s@%s%s/%s?sslmode=disable",
+		cfg.PostsPostgresUser, cfg.PostsPostgresPassword, cfg.PostsPostgresHost, cfg.PostsPostgresPort, cfg.PostsPostgresDb)
 
 	sqldb, err := sql.Open("pgx", dsn)
 	if err != nil {
-		infrastructure.Logger.Error("open database error", "error", err.Error())
+		logger.Logger.Error("open database error", "error", err.Error())
 		return nil
 	}
 
 	db := bun.NewDB(sqldb, pgdialect.New())
-	_, err = db.NewCreateTable().
-		IfNotExists().
-		Model((*models.DbPost)(nil)).
-		Exec(context.Background())
-
+	err = CreateTables(db)
 	if err != nil {
-		infrastructure.Logger.Error("create table error", "error", err.Error())
+		logger.Logger.Error("create tables", "error", err.Error())
 		return nil
 	}
 

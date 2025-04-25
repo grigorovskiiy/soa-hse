@@ -3,19 +3,14 @@ package application
 import (
 	"context"
 	"encoding/json"
-	"errors"
-	"fmt"
-	"github.com/golang-jwt/jwt/v5"
-	"github.com/grigorovskiiy/soa-hse/api_gateway_service/internal/infrastructure"
 	"github.com/grigorovskiiy/soa-hse/api_gateway_service/internal/infrastructure/clients"
+	"github.com/grigorovskiiy/soa-hse/api_gateway_service/internal/infrastructure/logger"
 	"github.com/grigorovskiiy/soa-hse/api_gateway_service/internal/infrastructure/models"
+	pb "github.com/grigorovskiiy/soa-hse/protos"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"io"
 	"net/http"
-	"net/http/httputil"
-	"net/url"
-	"os"
 	"strconv"
 )
 
@@ -29,57 +24,10 @@ func NewGatewayApp(GRPCClients *clients.GRPCClients) *GatewayApp {
 	}
 }
 
-type Claims struct {
-	Login    string `json:"login"`
-	Password string `json:"password"`
-	UserID   int    `json:"user_id"`
-	jwt.RegisteredClaims
-}
-
-var jwtKey = []byte("secret-key")
-
-func CreateProxy() *httputil.ReverseProxy {
-	proxy := httputil.NewSingleHostReverseProxy(&url.URL{
-		Scheme: "http",
-		Host:   fmt.Sprintf("users-service%s", os.Getenv("USERS_SERVICE_PORT")),
-	})
-
-	proxy.Director = func(req *http.Request) {
-		req.URL.Scheme = "http"
-		req.URL.Host = fmt.Sprintf("users-service%s", os.Getenv("USERS_SERVICE_PORT"))
-		req.Host = fmt.Sprintf("users-service%s", os.Getenv("USERS_SERVICE_PORT"))
-	}
-
-	return proxy
-}
-
-func JWTVerify(r *http.Request) error {
-	tokenString := r.Header.Get("Authorization")
-	if tokenString == "" {
-		infrastructure.Logger.Error("token is empty")
-		return errors.New("token is empty")
-	}
-
-	claims := &Claims{}
-	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			infrastructure.Logger.Error("token sign error")
-			return nil, errors.New(fmt.Sprintf("unexpected signing method: %v", token.Header["alg"]))
-		}
-
-		return jwtKey, nil
-	})
-
-	if err != nil || !token.Valid {
-		infrastructure.Logger.Error("token is invalid")
-		return errors.New("token is invalid")
-	}
-
-	r.Header.Set("Login", claims.Login)
-	r.Header.Set("Password", claims.Password)
-	r.Header.Set("UserID", strconv.Itoa(claims.UserID))
-
-	return nil
+func writeRes(w http.ResponseWriter, code int, val any) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+	_ = json.NewEncoder(w).Encode(val)
 }
 
 // Register godoc
@@ -93,21 +41,7 @@ func JWTVerify(r *http.Request) error {
 // @Failure		 400 {string} string
 // @Router       /register [post]
 func (a *GatewayApp) Register(w http.ResponseWriter, r *http.Request) {
-	logger := infrastructure.Logger.With("path", "/register")
-	logger.Info("request started")
-	if r.Method != http.MethodPost {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
-
-	proxy := CreateProxy()
-	if proxy == nil {
-		logger.Error("proxy error")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	logger.Info("request finished")
-	proxy.ServeHTTP(w, r)
+	logger.Logger.Info("request proxied", "path", "/register")
 }
 
 // Login godoc
@@ -121,22 +55,7 @@ func (a *GatewayApp) Register(w http.ResponseWriter, r *http.Request) {
 // @Failure 	 400 {string} string
 // @Router       /login [post]
 func (a *GatewayApp) Login(w http.ResponseWriter, r *http.Request) {
-	logger := infrastructure.Logger.With("path", "/login")
-	logger.Info("request started")
-	if r.Method != http.MethodPost {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
-
-	proxy := CreateProxy()
-	if proxy == nil {
-		logger.Error("proxy error")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	logger.Info("request finished")
-	proxy.ServeHTTP(w, r)
+	logger.Logger.Info("request proxied", "path", "/login")
 }
 
 // UpdateUserInfo godoc
@@ -153,29 +72,7 @@ func (a *GatewayApp) Login(w http.ResponseWriter, r *http.Request) {
 // @Failure 	 500
 // @Router       /update_user_info [put]
 func (a *GatewayApp) UpdateUserInfo(w http.ResponseWriter, r *http.Request) {
-	logger := infrastructure.Logger.With("path", "/update_user_info")
-	logger.Info("request started")
-	if r.Method != http.MethodPut {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
-
-	err := JWTVerify(r)
-	if err != nil {
-		infrastructure.Logger.Error(err.Error())
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-
-	proxy := CreateProxy()
-	if proxy == nil {
-		logger.Error("proxy error")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	logger.Info("request finished")
-	proxy.ServeHTTP(w, r)
+	logger.Logger.Info("request proxied", "path", "/update_user_info")
 }
 
 // GetUserInfo godoc
@@ -191,29 +88,7 @@ func (a *GatewayApp) UpdateUserInfo(w http.ResponseWriter, r *http.Request) {
 // @Failure 	 500
 // @Router       /get_user_info [get]
 func (a *GatewayApp) GetUserInfo(w http.ResponseWriter, r *http.Request) {
-	logger := infrastructure.Logger.With("path", "/get_user_info")
-	logger.Info("request started")
-	if r.Method != http.MethodGet {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
-
-	err := JWTVerify(r)
-	if err != nil {
-		logger.Error("jwt verify error", "error", err.Error())
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-
-	proxy := CreateProxy()
-	if proxy == nil {
-		logger.Error("proxy error")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	logger.Info("request finished")
-	proxy.ServeHTTP(w, r)
+	logger.Logger.Info("request proxied", "path", "/get_user_info")
 }
 
 // GetPost godoc
@@ -229,56 +104,39 @@ func (a *GatewayApp) GetUserInfo(w http.ResponseWriter, r *http.Request) {
 // @Failure 	 500 {string} string
 // @Router       /get_post [get]
 func (a *GatewayApp) GetPost(w http.ResponseWriter, r *http.Request) {
-	logger := infrastructure.Logger.With("path", "/get_post")
-	logger.Info("request started")
-	if r.Method != http.MethodGet {
-		w.WriteHeader(http.StatusMethodNotAllowed)
+	logger := logger.Logger.With("path", r.URL.Path, "method", r.Method)
+
+	query := r.URL.Query()
+	postIDStr := query.Get("post_id")
+
+	if postIDStr == "" {
+		writeRes(w, http.StatusBadRequest, "post_id is empty")
 		return
 	}
 
-	err := JWTVerify(r)
+	postID, err := strconv.Atoi(postIDStr)
 	if err != nil {
-		logger.Error("jwt verify error", "error", err.Error())
-		w.WriteHeader(http.StatusUnauthorized)
-	}
-
-	d, err := io.ReadAll(r.Body)
-	if err != nil {
-		logger.Error("read body error", "error", err.Error())
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	var req models.GetDeletePostRequest
-	err = json.Unmarshal(d, &req)
-	if err != nil {
-		logger.Error("unmarshal error", "error", err.Error())
-		w.WriteHeader(http.StatusBadRequest)
+		writeRes(w, http.StatusBadRequest, "post_id is invalid")
 		return
 	}
 
 	userID := r.Header.Get("UserID")
 	if userID == "" {
 		logger.Error("user_id is empty")
-		w.WriteHeader(http.StatusBadRequest)
-		_ = json.NewEncoder(w).Encode("user_id is empty")
+		writeRes(w, http.StatusBadRequest, "user_id is empty")
 		return
 	}
 
 	ctx := metadata.AppendToOutgoingContext(context.Background(), "user_id", userID)
 
-	res, err := a.GRPCClients.PostsServiceClient.GetPost(ctx, req.ToProto())
+	res, err := a.GRPCClients.PostsServiceClient.GetPost(ctx, &pb.PostID{PostId: int32(postID)})
 	if err != nil {
-		st := status.Convert(err)
-		logger.Error("grpc request GetPost error", "error", st.Message())
-		w.WriteHeader(http.StatusInternalServerError)
-		_ = json.NewEncoder(w).Encode(st.Message())
+		logger.Error("grpc request GetPost error", "error", status.Convert(err))
+		writeRes(w, http.StatusInternalServerError, status.Convert(err).Message())
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode(models.FromProtoPostResponse(res))
-	logger.Info("request finished")
+	writeRes(w, http.StatusOK, models.FromProtoPostResponse(res))
 }
 
 // GetPostList godoc
@@ -294,56 +152,43 @@ func (a *GatewayApp) GetPost(w http.ResponseWriter, r *http.Request) {
 // @Failure 	 500 {string} string
 // @Router       /get_post_list [get]
 func (a *GatewayApp) GetPostList(w http.ResponseWriter, r *http.Request) {
-	logger := infrastructure.Logger.With("path", "/get_post_list")
-	logger.Info("request started")
-	if r.Method != http.MethodGet {
-		w.WriteHeader(http.StatusMethodNotAllowed)
+	logger := logger.Logger.With("path", r.URL.Path, "method", r.Method)
+
+	query := r.URL.Query()
+	pageStr := query.Get("page")
+	pageSizeStr := query.Get("page_size")
+
+	if pageStr == "" || pageSizeStr == "" {
+		writeRes(w, http.StatusBadRequest, "page or page size is empty")
 		return
 	}
 
-	err := JWTVerify(r)
-	if err != nil {
-		logger.Error("jwt verify error", "error", err.Error())
-		w.WriteHeader(http.StatusUnauthorized)
-		return
+	page, err := strconv.Atoi(pageStr)
+	if err != nil || page < 1 {
+		page = 1
 	}
 
-	d, err := io.ReadAll(r.Body)
-	if err != nil {
-		logger.Error("read body error", "error", err.Error())
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	var req models.GetPostListRequest
-	err = json.Unmarshal(d, &req)
-	if err != nil {
-		logger.Error("unmarshal error", "error", err.Error())
-		w.WriteHeader(http.StatusBadRequest)
-		return
+	pageSize, err := strconv.Atoi(pageSizeStr)
+	if err != nil || pageSize < 1 {
+		pageSize = 10
 	}
 
 	userID := r.Header.Get("UserID")
 	if userID == "" {
 		logger.Error("user_id is empty")
-		w.WriteHeader(http.StatusBadRequest)
-		_ = json.NewEncoder(w).Encode("user_id is empty")
+		writeRes(w, http.StatusBadRequest, "user_id is empty")
 		return
 	}
 
 	ctx := metadata.AppendToOutgoingContext(context.Background(), "user_id", userID)
-	res, err := a.GRPCClients.PostsServiceClient.GetPostList(ctx, req.ToProto())
+	res, err := a.GRPCClients.PostsServiceClient.GetPostList(ctx, &pb.PaginatedListRequest{Page: int32(page), PageSize: int32(pageSize)})
 	if err != nil {
-		st := status.Convert(err)
-		logger.Error("rpc request GetPostList", "error", st.Message())
-		w.WriteHeader(http.StatusInternalServerError)
-		_ = json.NewEncoder(w).Encode(st.Message())
+		logger.Error("rpc request GetPostList", "error", status.Convert(err).Message())
+		writeRes(w, http.StatusInternalServerError, status.Convert(err).Message())
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode(models.FromProtoListPostResponse(res))
-	logger.Info("request finished")
+	writeRes(w, http.StatusOK, models.FromProtoListPostResponse(res))
 }
 
 // CreatePost godoc
@@ -359,24 +204,12 @@ func (a *GatewayApp) GetPostList(w http.ResponseWriter, r *http.Request) {
 // @Failure 	 500 {string} string
 // @Router       /create_post [post]
 func (a *GatewayApp) CreatePost(w http.ResponseWriter, r *http.Request) {
-	logger := infrastructure.Logger.With("path", "/create_post")
-	logger.Info("request started")
-	if r.Method != http.MethodPost {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
-
-	err := JWTVerify(r)
-	if err != nil {
-		infrastructure.Logger.Error(err.Error())
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
+	logger := logger.Logger.With("path", r.URL.Path, "method", r.Method)
 
 	d, err := io.ReadAll(r.Body)
 	if err != nil {
 		logger.Error("read body error", "error", err.Error())
-		w.WriteHeader(http.StatusBadRequest)
+		writeRes(w, http.StatusBadRequest, nil)
 		return
 	}
 
@@ -384,31 +217,26 @@ func (a *GatewayApp) CreatePost(w http.ResponseWriter, r *http.Request) {
 	err = json.Unmarshal(d, &req)
 	if err != nil {
 		logger.Error("unmarshal error", "error", err.Error())
-		w.WriteHeader(http.StatusBadRequest)
+		writeRes(w, http.StatusBadRequest, nil)
 		return
 	}
 
 	userID := r.Header.Get("UserID")
 	if userID == "" {
 		logger.Error("user_id is empty")
-		w.WriteHeader(http.StatusBadRequest)
-		_ = json.NewEncoder(w).Encode("user_id is empty")
+		writeRes(w, http.StatusBadRequest, "user_id is empty")
 		return
 	}
 
 	ctx := metadata.AppendToOutgoingContext(context.Background(), "user_id", userID)
 	_, err = a.GRPCClients.PostsServiceClient.CreatePost(ctx, req.ToProto())
 	if err != nil {
-		st := status.Convert(err)
-		logger.Error("grpc request CreatePost error", "error", st.Message())
-		w.WriteHeader(http.StatusInternalServerError)
-		_ = json.NewEncoder(w).Encode(st.Message())
+		logger.Error("grpc request CreatePost error", "error", status.Convert(err))
+		writeRes(w, http.StatusInternalServerError, status.Convert(err))
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode("Post is created")
-	logger.Info("request finished")
+	writeRes(w, http.StatusOK, "Post is created")
 }
 
 // DeletePost godoc
@@ -424,55 +252,38 @@ func (a *GatewayApp) CreatePost(w http.ResponseWriter, r *http.Request) {
 // @Failure 	 500 {string} string
 // @Router       /delete_post [delete]
 func (a *GatewayApp) DeletePost(w http.ResponseWriter, r *http.Request) {
-	logger := infrastructure.Logger.With("path", "/delete_post")
-	logger.Info("request started")
-	if r.Method != http.MethodDelete {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
-
-	err := JWTVerify(r)
-	if err != nil {
-		logger.Error("jwt verify error", "error", err.Error())
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
+	logger := logger.Logger.With("path", r.URL.Path, "method", r.Method)
 
 	d, err := io.ReadAll(r.Body)
 	if err != nil {
 		logger.Error("read body error", "error", err.Error())
-		w.WriteHeader(http.StatusBadRequest)
+		writeRes(w, http.StatusBadRequest, nil)
 		return
 	}
 
-	var req models.GetDeletePostRequest
+	var req models.PostID
 	err = json.Unmarshal(d, &req)
 	if err != nil {
 		logger.Error("unmarshal error", "error", err.Error())
-		w.WriteHeader(http.StatusBadRequest)
+		writeRes(w, http.StatusBadRequest, nil)
 		return
 	}
 
 	userID := r.Header.Get("UserID")
 	if userID == "" {
 		logger.Error("user_id is empty")
-		w.WriteHeader(http.StatusBadRequest)
-		_ = json.NewEncoder(w).Encode("user_id is empty")
+		writeRes(w, http.StatusBadRequest, "user_id is empty")
 		return
 	}
 	ctx := metadata.AppendToOutgoingContext(context.Background(), "user_id", userID)
 	_, err = a.GRPCClients.PostsServiceClient.DeletePost(ctx, req.ToProto())
 	if err != nil {
-		st := status.Convert(err)
-		logger.Error("grpc request DeletePost error", "error", st.Message())
-		w.WriteHeader(http.StatusInternalServerError)
-		_ = json.NewEncoder(w).Encode(st.Message())
+		logger.Error("grpc request DeletePost error", "error", status.Convert(err).Message())
+		writeRes(w, http.StatusInternalServerError, status.Convert(err).Message())
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode("Post is deleted")
-	logger.Info("request finished")
+	writeRes(w, http.StatusOK, "Post is deleted")
 }
 
 // UpdatePost godoc
@@ -488,53 +299,183 @@ func (a *GatewayApp) DeletePost(w http.ResponseWriter, r *http.Request) {
 // @Failure 	 500 {string} string
 // @Router       /update_post [put]
 func (a *GatewayApp) UpdatePost(w http.ResponseWriter, r *http.Request) {
-	logger := infrastructure.Logger.With("path", "/update_post")
-	logger.Info("request started")
-	if r.Method != http.MethodPut {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
-
-	err := JWTVerify(r)
-	if err != nil {
-		logger.Error("jwt verify error", "error", err.Error())
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
+	logger := logger.Logger.With("path", r.URL.Path, "method", r.Method)
 
 	d, err := io.ReadAll(r.Body)
 	if err != nil {
 		logger.Error("read body error", "error", err.Error())
-		w.WriteHeader(http.StatusBadRequest)
+		writeRes(w, http.StatusBadRequest, nil)
 		return
 	}
 	var req models.UpdatePostRequest
 	err = json.Unmarshal(d, &req)
 	if err != nil {
 		logger.Error("unmarshal error", "error", err.Error())
-		w.WriteHeader(http.StatusBadRequest)
+		writeRes(w, http.StatusBadRequest, nil)
 		return
 	}
 
 	userID := r.Header.Get("UserID")
 	if userID == "" {
 		logger.Error("user_id is empty")
-		w.WriteHeader(http.StatusBadRequest)
-		_ = json.NewEncoder(w).Encode("user_id is empty")
+		writeRes(w, http.StatusBadRequest, "user_id is empty")
 		return
 	}
 
 	ctx := metadata.AppendToOutgoingContext(context.Background(), "user_id", userID)
 	_, err = a.GRPCClients.PostsServiceClient.UpdatePost(ctx, req.ToProto())
 	if err != nil {
-		st := status.Convert(err)
-		logger.Error("error api grpc request UpdatePost", st.Message())
-		w.WriteHeader(http.StatusInternalServerError)
-		_ = json.NewEncoder(w).Encode(st.Message())
+		logger.Error("error api grpc request UpdatePost", status.Convert(err).Message())
+		writeRes(w, http.StatusInternalServerError, status.Convert(err).Message())
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode("Post is updated")
-	logger.Info("request finished")
+	writeRes(w, http.StatusOK, "Post is updated")
+}
+
+func (a *GatewayApp) PostComment(w http.ResponseWriter, r *http.Request) {
+	logger := logger.Logger.With("path", r.URL.Path, "method", r.Method)
+
+	d, err := io.ReadAll(r.Body)
+	if err != nil {
+		logger.Error("read body error", "error", err.Error())
+		writeRes(w, http.StatusBadRequest, nil)
+		return
+	}
+
+	var req models.PostCommentRequest
+	err = json.Unmarshal(d, &req)
+	if err != nil {
+		logger.Error("unmarshal error", "error", err.Error())
+		writeRes(w, http.StatusBadRequest, nil)
+		return
+	}
+
+	userID := r.Header.Get("UserID")
+	if userID == "" {
+		logger.Error("user_id is empty")
+		writeRes(w, http.StatusBadRequest, "user_id is empty")
+		return
+	}
+
+	ctx := metadata.AppendToOutgoingContext(context.Background(), "user_id", userID)
+	_, err = a.GRPCClients.PostsServiceClient.PostComment(ctx, req.ToProto())
+	if err != nil {
+		logger.Error("error api grpc request PostComment", status.Convert(err).Message())
+		writeRes(w, http.StatusInternalServerError, status.Convert(err).Message())
+		return
+	}
+
+	writeRes(w, http.StatusOK, "Comment is posted")
+}
+
+func (a *GatewayApp) PostLike(w http.ResponseWriter, r *http.Request) {
+	logger := logger.Logger.With("path", r.URL.Path, "method", r.Method)
+
+	d, err := io.ReadAll(r.Body)
+	if err != nil {
+		logger.Error("read body error", "error", err.Error())
+		writeRes(w, http.StatusBadRequest, nil)
+		return
+	}
+
+	var req models.PostID
+	err = json.Unmarshal(d, &req)
+	if err != nil {
+		logger.Error("unmarshal error", "error", err.Error())
+		writeRes(w, http.StatusBadRequest, nil)
+		return
+	}
+
+	userID := r.Header.Get("UserID")
+	if userID == "" {
+		logger.Error("user_id is empty")
+		writeRes(w, http.StatusBadRequest, "user_id is empty")
+	}
+
+	ctx := metadata.AppendToOutgoingContext(context.Background(), "user_id", userID)
+	_, err = a.GRPCClients.PostsServiceClient.PostLike(ctx, req.ToProto())
+	if err != nil {
+		logger.Error("error api grpc request PostLike", status.Convert(err).Message())
+		writeRes(w, http.StatusInternalServerError, status.Convert(err).Message())
+		return
+	}
+
+	writeRes(w, http.StatusOK, "Like is posted")
+}
+
+func (a *GatewayApp) PostView(w http.ResponseWriter, r *http.Request) {
+	logger := logger.Logger.With("path", r.URL.Path, "method", r.Method)
+
+	d, err := io.ReadAll(r.Body)
+	if err != nil {
+		logger.Error("read body error", "error", err.Error())
+		writeRes(w, http.StatusBadRequest, nil)
+		return
+	}
+
+	var req models.PostID
+	err = json.Unmarshal(d, &req)
+	if err != nil {
+		logger.Error("unmarshal error", "error", err.Error())
+		writeRes(w, http.StatusBadRequest, nil)
+		return
+	}
+
+	userID := r.Header.Get("UserID")
+	if userID == "" {
+		logger.Error("user_id is empty")
+		writeRes(w, http.StatusBadRequest, "user_id is empty")
+		return
+	}
+
+	ctx := metadata.AppendToOutgoingContext(context.Background(), "user_id", userID)
+	_, err = a.GRPCClients.PostsServiceClient.PostView(ctx, req.ToProto())
+	if err != nil {
+		logger.Error("error api grpc request PostView", status.Convert(err).Message())
+		writeRes(w, http.StatusInternalServerError, status.Convert(err).Message())
+		return
+	}
+
+	writeRes(w, http.StatusOK, "View is posted")
+}
+
+func (a *GatewayApp) GetCommentList(w http.ResponseWriter, r *http.Request) {
+	logger := logger.Logger.With("path", r.URL.Path, "method", r.Method)
+
+	query := r.URL.Query()
+	pageStr := query.Get("page")
+	pageSizeStr := query.Get("page_size")
+
+	if pageStr == "" || pageSizeStr == "" {
+		writeRes(w, http.StatusBadRequest, "page or page size is empty")
+		return
+	}
+
+	page, err := strconv.Atoi(pageStr)
+	if err != nil || page < 1 {
+		page = 1
+	}
+
+	pageSize, err := strconv.Atoi(pageSizeStr)
+	if err != nil || pageSize < 1 {
+		pageSize = 10
+	}
+
+	userID := r.Header.Get("UserID")
+	if userID == "" {
+		logger.Error("user_id is empty")
+		writeRes(w, http.StatusBadRequest, "user_id is empty")
+		return
+	}
+
+	ctx := metadata.AppendToOutgoingContext(context.Background(), "user_id", userID)
+	res, err := a.GRPCClients.PostsServiceClient.GetCommentList(ctx, &pb.PaginatedListRequest{Page: int32(page), PageSize: int32(pageSize)})
+	if err != nil {
+		logger.Error("error api grpc request GetCommentList", status.Convert(err).Message())
+		writeRes(w, http.StatusInternalServerError, status.Convert(err).Message())
+		return
+	}
+
+	writeRes(w, http.StatusOK, models.FromProtoListCommentResponse(res))
 }

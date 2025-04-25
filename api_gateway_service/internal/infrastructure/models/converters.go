@@ -4,13 +4,6 @@ import (
 	pb "github.com/grigorovskiiy/soa-hse/protos"
 )
 
-func (m *GetPostListRequest) ToProto() *pb.ListPostsRequest {
-	return &pb.ListPostsRequest{
-		Page:     m.Page,
-		PageSize: m.PageSize,
-	}
-}
-
 func (m *CreatePostRequest) ToProto() *pb.PostDataRequest {
 	return &pb.PostDataRequest{
 		PostName:        m.PostName,
@@ -20,7 +13,7 @@ func (m *CreatePostRequest) ToProto() *pb.PostDataRequest {
 	}
 }
 
-func (m *GetDeletePostRequest) ToProto() *pb.PostID {
+func (m *PostID) ToProto() *pb.PostID {
 	return &pb.PostID{
 		PostId: int32(m.PostID),
 	}
@@ -40,14 +33,14 @@ func (m *UpdatePostRequest) ToProto() *pb.UpdatePostRequest {
 
 func FromProtoPostResponse(pb *pb.PostDataResponse) *GetPostResponse {
 	return &GetPostResponse{
-		PostId:          int(pb.GetPostId()),
+		PostID:          int(pb.GetPostId()),
 		PostName:        pb.GetPostName(),
 		PostDescription: pb.GetPostDescription(),
 		SecurityFlag:    pb.GetSecurityFlag(),
 		CreatedAt:       pb.GetCreatedAt().AsTime().Local(),
 		UpdatedAt:       pb.GetUpdatedAt().AsTime().Local(),
 		Tags:            pb.GetTags(),
-		UserId:          int(pb.GetUserId()),
+		UserID:          int(pb.GetUserId()),
 	}
 }
 
@@ -59,5 +52,32 @@ func FromProtoListPostResponse(pb *pb.ListPostsResponse) *GetPostListResponse {
 
 	return &GetPostListResponse{
 		Posts: posts,
+	}
+}
+
+func (m *PostCommentRequest) ToProto() *pb.PostCommentRequest {
+	return &pb.PostCommentRequest{
+		PostId:             int32(m.PostID),
+		CommentDescription: m.Description,
+	}
+}
+
+func FromProtoPostCommentResponse(pb *pb.CommentDataResponse) *GetCommentResponse {
+	return &GetCommentResponse{
+		CommentID:   int(pb.CommentId),
+		PostID:      int(pb.PostId),
+		UserID:      int(pb.UserId),
+		Description: pb.CommentDescription,
+	}
+}
+
+func FromProtoListCommentResponse(pb *pb.ListCommentsResponse) *GetListCommentResponse {
+	comments := make([]*GetCommentResponse, len(pb.Comments))
+	for i, comment := range pb.Comments {
+		comments[i] = FromProtoPostCommentResponse(comment)
+	}
+
+	return &GetListCommentResponse{
+		Comments: comments,
 	}
 }

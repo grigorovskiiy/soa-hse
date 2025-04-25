@@ -5,18 +5,18 @@ import (
 	"errors"
 	"fmt"
 	"github.com/grigorovskiiy/soa-hse/posts_service/internal/application"
-	"github.com/grigorovskiiy/soa-hse/posts_service/internal/infrastructure"
+	"github.com/grigorovskiiy/soa-hse/posts_service/internal/config"
+	"github.com/grigorovskiiy/soa-hse/posts_service/internal/infrastructure/logger"
 	pb "github.com/grigorovskiiy/soa-hse/protos"
 	"go.uber.org/fx"
 	"google.golang.org/grpc"
 	"net"
-	"os"
 )
 
-func NewServer(s *application.PostsServiceServer) (*grpc.Server, net.Listener) {
-	lis, err := net.Listen("tcp", fmt.Sprintf("posts-service%s", os.Getenv("POST_SERVICE_PORT")))
+func NewServer(s *application.PostsServiceServer, cfg *config.Config) (*grpc.Server, net.Listener) {
+	lis, err := net.Listen("tcp", fmt.Sprintf("%s%s", cfg.PostsServiceHost, cfg.PostsServicePort))
 	if err != nil {
-		infrastructure.Logger.Error(fmt.Sprintf("failed to listen: %s", err.Error()))
+		logger.Logger.Error(fmt.Sprintf("failed to listen: %s", err.Error()))
 		return nil, nil
 	}
 

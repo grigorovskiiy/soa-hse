@@ -2,7 +2,7 @@ package application
 
 import (
 	"encoding/json"
-	"github.com/grigorovskiiy/soa-hse/users_service/internal/infrastructure"
+	"github.com/grigorovskiiy/soa-hse/users_service/internal/infrastructure/logger"
 	"github.com/grigorovskiiy/soa-hse/users_service/internal/infrastructure/models"
 	"io"
 	"net/http"
@@ -22,13 +22,18 @@ func NewUsersApp(service UsersService) *UsersApp {
 	return &UsersApp{Service: service}
 }
 
+func writeRes(w http.ResponseWriter, code int, val any) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+	_ = json.NewEncoder(w).Encode(val)
+}
+
 func (a *UsersApp) Register(w http.ResponseWriter, r *http.Request) {
-	logger := infrastructure.Logger.With("path", "/register")
-	logger.Info("request started")
+	logger := logger.Logger.With("path", r.URL.Path, "method", r.Method)
 	d, err := io.ReadAll(r.Body)
 	if err != nil {
 		logger.Error("read body error", "error", err.Error())
-		w.WriteHeader(http.StatusBadRequest)
+		writeRes(w, http.StatusBadRequest, nil)
 		return
 	}
 
@@ -36,30 +41,27 @@ func (a *UsersApp) Register(w http.ResponseWriter, r *http.Request) {
 	err = json.Unmarshal(d, &req)
 	if err != nil {
 		logger.Error("unmarshal error", "error", err.Error())
-		w.WriteHeader(http.StatusBadRequest)
+		writeRes(w, http.StatusBadRequest, nil)
 		return
 	}
 
 	err = a.Service.Register(&req)
 	if err != nil {
 		logger.Error("service register error", "error", err.Error())
-		w.WriteHeader(http.StatusBadRequest)
-		_ = json.NewEncoder(w).Encode(err.Error())
+		writeRes(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode("User is registered")
-	logger.Info("request finished")
+	writeRes(w, http.StatusOK, "user is registered")
 }
 
 func (a *UsersApp) Login(w http.ResponseWriter, r *http.Request) {
-	logger := infrastructure.Logger.With("path", "/login")
-	logger.Info("request started")
+	logger := logger.Logger.With("path", r.URL.Path, "method", r.Method)
+
 	d, err := io.ReadAll(r.Body)
 	if err != nil {
 		logger.Error("read body error", "error", err.Error())
-		w.WriteHeader(http.StatusBadRequest)
+		writeRes(w, http.StatusBadRequest, nil)
 		return
 	}
 
@@ -67,31 +69,27 @@ func (a *UsersApp) Login(w http.ResponseWriter, r *http.Request) {
 	err = json.Unmarshal(d, &req)
 	if err != nil {
 		logger.Error("unmarshal error", "error", err.Error())
-		w.WriteHeader(http.StatusBadRequest)
+		writeRes(w, http.StatusBadRequest, nil)
 		return
 	}
 
 	token, err := a.Service.Login(&req)
 	if err != nil {
 		logger.Error("service login error", "error", err.Error())
-		w.WriteHeader(http.StatusBadRequest)
-		_ = json.NewEncoder(w).Encode(err.Error())
+		writeRes(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode(token)
-	logger.Info("request finished")
+	writeRes(w, http.StatusOK, token)
 }
 
 func (a *UsersApp) UpdateUserInfo(w http.ResponseWriter, r *http.Request) {
-	logger := infrastructure.Logger.With("path", "/updateUserInfo")
-	logger.Info("request started")
+	logger := logger.Logger.With("path", r.URL.Path, "method", r.Method)
 
 	d, err := io.ReadAll(r.Body)
 	if err != nil {
 		logger.Error("read body error", "error", err.Error())
-		w.WriteHeader(http.StatusBadRequest)
+		writeRes(w, http.StatusBadRequest, nil)
 		return
 	}
 
@@ -99,7 +97,7 @@ func (a *UsersApp) UpdateUserInfo(w http.ResponseWriter, r *http.Request) {
 	err = json.Unmarshal(d, &req)
 	if err != nil {
 		logger.Error("unmarshal error", "error", err.Error())
-		w.WriteHeader(http.StatusBadRequest)
+		writeRes(w, http.StatusBadRequest, nil)
 		return
 	}
 	login := r.Header.Get("Login")
@@ -107,30 +105,23 @@ func (a *UsersApp) UpdateUserInfo(w http.ResponseWriter, r *http.Request) {
 	err = a.Service.UpdateUserInfo(&req, login)
 	if err != nil {
 		logger.Error("service update error", "error", err.Error())
-		w.WriteHeader(http.StatusBadRequest)
-		_ = json.NewEncoder(w).Encode(err.Error())
+		writeRes(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode("User info is updated")
-	logger.Info("request finished")
+	writeRes(w, http.StatusOK, "user is updated")
 }
 
 func (a *UsersApp) GetUserInfo(w http.ResponseWriter, r *http.Request) {
-	logger := infrastructure.Logger.With("path", "/getUserInfo")
-	logger.Info("request started")
+	logger := logger.Logger.With("path", r.URL.Path, "method", r.Method)
 	login := r.Header.Get("Login")
 
 	user, err := a.Service.GetUserInfo(login)
 	if err != nil {
 		logger.Error("service get user info error", "error", err.Error())
-		w.WriteHeader(http.StatusBadRequest)
-		_ = json.NewEncoder(w).Encode(err.Error())
+		writeRes(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode(user)
-	logger.Info("request finished")
+	writeRes(w, http.StatusOK, user)
 }

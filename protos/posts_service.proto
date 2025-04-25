@@ -32,7 +32,7 @@ message UpdatePostRequest {
   PostDataRequest post_data = 2;
 }
 
-message ListPostsRequest {
+message PaginatedListRequest {
   int32 page = 1;
   int32 page_size = 2;
 }
@@ -41,10 +41,30 @@ message ListPostsResponse {
   repeated PostDataResponse posts = 1;
 }
 
+message PostCommentRequest {
+  int32 post_id = 1;
+  string comment_description = 2;
+}
+
+message CommentDataResponse {
+  int32 comment_id = 1;
+  string comment_description = 2;
+  int32 post_id = 3;
+  int32 user_id = 4;
+}
+
+message ListCommentsResponse {
+  repeated CommentDataResponse comments = 1;
+}
+
 service PostsService {
   rpc CreatePost(PostDataRequest) returns (google.protobuf.Empty);
   rpc DeletePost(PostID) returns (google.protobuf.Empty);
   rpc UpdatePost(UpdatePostRequest) returns (google.protobuf.Empty);
   rpc GetPost(PostID) returns (PostDataResponse);
-  rpc GetPostList(ListPostsRequest) returns (ListPostsResponse);
+  rpc GetPostList(PaginatedListRequest) returns (ListPostsResponse);
+  rpc PostComment(PostCommentRequest) returns (google.protobuf.Empty);
+  rpc PostLike(PostID) returns (google.protobuf.Empty);
+  rpc PostView(PostID) returns (google.protobuf.Empty);
+  rpc GetCommentList(PaginatedListRequest) returns (ListCommentsResponse);
 }

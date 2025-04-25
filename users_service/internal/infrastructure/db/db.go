@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/grigorovskiiy/soa-hse/users_service/internal/infrastructure"
+	"github.com/grigorovskiiy/soa-hse/users_service/internal/infrastructure/logger"
 	"github.com/grigorovskiiy/soa-hse/users_service/internal/infrastructure/models"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/uptrace/bun/dialect/pgdialect"
@@ -20,7 +20,7 @@ func InitDb(lc fx.Lifecycle) *bun.DB {
 
 	sqldb, err := sql.Open("pgx", dsn)
 	if err != nil {
-		infrastructure.Logger.Error("open database error", "error", err.Error())
+		logger.Logger.Error("open database error", "error", err.Error())
 		return nil
 	}
 
@@ -32,7 +32,7 @@ func InitDb(lc fx.Lifecycle) *bun.DB {
 		Exec(context.Background())
 
 	if err != nil {
-		infrastructure.Logger.Error("create table error", "error", err.Error())
+		logger.Logger.Error("create table error", "error", err.Error())
 		return nil
 	}
 

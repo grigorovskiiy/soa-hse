@@ -2,7 +2,7 @@ package service
 
 import (
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/grigorovskiiy/soa-hse/users_service/internal/infrastructure"
+	"github.com/grigorovskiiy/soa-hse/users_service/internal/infrastructure/logger"
 	"github.com/grigorovskiiy/soa-hse/users_service/internal/infrastructure/models"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -39,7 +39,7 @@ func (a *UService) Register(req *models.RegisterRequest) error {
 	}
 
 	if err := a.repository.Register(&userInfo); err != nil {
-		infrastructure.Logger.Error("db register user info error", "error", err.Error())
+		logger.Logger.Error("db register user info error", "error", err.Error())
 		return err
 	}
 
@@ -49,13 +49,13 @@ func (a *UService) Register(req *models.RegisterRequest) error {
 func (a *UService) Login(req *models.GetLoginRequest) (string, error) {
 	err := a.repository.Login(req)
 	if err != nil {
-		infrastructure.Logger.Error("db login error", "error", err.Error())
+		logger.Logger.Error("db login error", "error", err.Error())
 		return "", err
 	}
 
 	userID, err := a.repository.GetUserID(req.Login)
 	if err != nil {
-		infrastructure.Logger.Error("db get user id error", "error", err.Error())
+		logger.Logger.Error("db get user id error", "error", err.Error())
 		return "", err
 	}
 
@@ -67,7 +67,7 @@ func (a *UService) Login(req *models.GetLoginRequest) (string, error) {
 
 	token, err := claims.SignedString(secretKey)
 	if err != nil {
-		infrastructure.Logger.Error("signing jwt error", "error", err.Error())
+		logger.Logger.Error("signing jwt error", "error", err.Error())
 		return "", nil
 	}
 
@@ -83,7 +83,7 @@ func (a *UService) UpdateUserInfo(req *models.UserUpdateRequest, login string) e
 	}
 
 	if err := a.repository.UpdateUserInfo(&userInfo, login); err != nil {
-		infrastructure.Logger.Error("db update user info error", "error", err.Error())
+		logger.Logger.Error("db update user info error", "error", err.Error())
 		return err
 	}
 
@@ -93,7 +93,7 @@ func (a *UService) UpdateUserInfo(req *models.UserUpdateRequest, login string) e
 func (a *UService) GetUserInfo(login string) (*models.DbUser, error) {
 	userInfo, err := a.repository.GetUserInfo(login)
 	if err != nil {
-		infrastructure.Logger.Error("db get user info error", "error", err.Error())
+		logger.Logger.Error("db get user info error", "error", err.Error())
 		return nil, status.Errorf(codes.NotFound, err.Error())
 	}
 

@@ -3,8 +3,8 @@ package main
 import (
 	_ "github.com/grigorovskiiy/soa-hse/api_gateway_service/docs"
 	"github.com/grigorovskiiy/soa-hse/api_gateway_service/internal/application"
-	"github.com/grigorovskiiy/soa-hse/api_gateway_service/internal/infrastructure"
 	"github.com/grigorovskiiy/soa-hse/api_gateway_service/internal/infrastructure/clients"
+	"github.com/grigorovskiiy/soa-hse/api_gateway_service/internal/infrastructure/logger"
 	"github.com/grigorovskiiy/soa-hse/api_gateway_service/internal/server"
 	"github.com/joho/godotenv"
 
@@ -13,7 +13,7 @@ import (
 
 func init() {
 	if err := godotenv.Load(); err != nil {
-		infrastructure.Logger.Error("env file is not found")
+		logger.Logger.Error("env file is not found")
 	}
 }
 

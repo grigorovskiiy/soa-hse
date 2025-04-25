@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/grigorovskiiy/soa-hse/api_gateway_service/internal/application"
+	"github.com/grigorovskiiy/soa-hse/api_gateway_service/internal/middleware"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 	"go.uber.org/fx"
 	"net/http"
@@ -13,15 +14,76 @@ import (
 func NewServer(a *application.GatewayApp) *http.Server {
 	mux := http.NewServeMux()
 
-	mux.Handle("/register", http.HandlerFunc(a.Register))
-	mux.Handle("/login", http.HandlerFunc(a.Login))
-	mux.Handle("/get_user_info", http.HandlerFunc(a.GetUserInfo))
-	mux.Handle("/update_user_info", http.HandlerFunc(a.UpdateUserInfo))
-	mux.Handle("/create_post", http.HandlerFunc(a.CreatePost))
-	mux.Handle("/delete_post", http.HandlerFunc(a.DeletePost))
-	mux.Handle("/update_post", http.HandlerFunc(a.UpdatePost))
-	mux.Handle("/get_post", http.HandlerFunc(a.GetPost))
-	mux.Handle("/get_post_list", http.HandlerFunc(a.GetPostList))
+	mux.Handle("/register",
+		middleware.ProxyMiddleware("users-service")(
+			middleware.LoggerMiddleware(
+				middleware.MethodMiddleware(http.MethodPost, http.HandlerFunc(a.Register)),
+			)))
+
+	mux.Handle("/login",
+		middleware.ProxyMiddleware("users-service")(
+			middleware.LoggerMiddleware(
+				middleware.MethodMiddleware(http.MethodPost, http.HandlerFunc(a.Register)),
+			)))
+
+	mux.Handle("/get_user_info",
+		middleware.ProxyMiddleware("users-service")(
+			middleware.LoggerMiddleware(
+				middleware.MethodMiddleware(http.MethodPost, http.HandlerFunc(a.GetUserInfo)),
+			)))
+
+	mux.Handle("/update_user_info",
+		middleware.ProxyMiddleware("users-service")(
+			middleware.LoggerMiddleware(
+				middleware.MethodMiddleware(http.MethodPost, http.HandlerFunc(a.UpdateUserInfo)),
+			)))
+
+	mux.Handle("/create_post",
+		middleware.LoggerMiddleware(
+			middleware.MethodMiddleware(http.MethodPost,
+				middleware.AuthMiddleware(http.HandlerFunc(a.CreatePost)))))
+
+	mux.Handle("/delete_post",
+		middleware.LoggerMiddleware(
+			middleware.MethodMiddleware(http.MethodDelete,
+				middleware.AuthMiddleware(http.HandlerFunc(a.DeletePost)))))
+
+	mux.Handle("/update_post",
+		middleware.LoggerMiddleware(
+			middleware.MethodMiddleware(http.MethodPut,
+				middleware.AuthMiddleware(http.HandlerFunc(a.UpdatePost)))))
+
+	mux.Handle("/get_post",
+		middleware.LoggerMiddleware(
+			middleware.MethodMiddleware(http.MethodGet,
+				middleware.AuthMiddleware(http.HandlerFunc(a.GetPost)))))
+
+	mux.Handle("/get_post_list",
+		middleware.LoggerMiddleware(
+			middleware.MethodMiddleware(http.MethodGet,
+				middleware.AuthMiddleware(http.HandlerFunc(a.GetPostList)))))
+
+	mux.Handle("/post_comment",
+		middleware.LoggerMiddleware(
+			middleware.MethodMiddleware(http.MethodPost,
+				middleware.AuthMiddleware(http.HandlerFunc(a.PostComment)))),
+	)
+
+	mux.Handle("/post_like",
+		middleware.LoggerMiddleware(
+			middleware.MethodMiddleware(http.MethodPost,
+				middleware.AuthMiddleware(http.HandlerFunc(a.PostLike)))))
+
+	mux.Handle("/post_view",
+		middleware.LoggerMiddleware(
+			middleware.MethodMiddleware(http.MethodPost,
+				middleware.AuthMiddleware(http.HandlerFunc(a.PostView)))))
+
+	mux.Handle("/get_comment_list",
+		middleware.LoggerMiddleware(
+			middleware.MethodMiddleware(http.MethodGet,
+				middleware.AuthMiddleware(http.HandlerFunc(a.GetCommentList)))))
+
 	mux.Handle("/swagger/", httpSwagger.Handler(httpSwagger.URL("swagger/swagger/doc.json")))
 
 	return &http.Server{

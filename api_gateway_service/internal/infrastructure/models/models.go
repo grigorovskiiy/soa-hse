@@ -23,11 +23,6 @@ type GetLoginRequest struct {
 	Password string `json:"password"`
 }
 
-type GetPostListRequest struct {
-	Page     int32 `json:"page"`
-	PageSize int32 `json:"page_size"`
-}
-
 type CreatePostRequest struct {
 	PostName        string   `json:"post_name"`
 	PostDescription string   `json:"post_description"`
@@ -35,12 +30,12 @@ type CreatePostRequest struct {
 	SecurityFlag    bool     `json:"security_flag"`
 }
 
-type GetDeletePostRequest struct {
-	PostID int `json:"post_id"`
+type PostID struct {
+	PostID int `json:"post_ID"`
 }
 
 type UpdatePostRequest struct {
-	PostID          int      `json:"post_id"`
+	PostID          int      `json:"post_ID"`
 	PostName        string   `json:"post_name"`
 	PostDescription string   `json:"post_description"`
 	Tags            []string `json:"tags"`
@@ -48,16 +43,32 @@ type UpdatePostRequest struct {
 }
 
 type GetPostResponse struct {
-	PostId          int       `json:"post_id"`
+	PostID          int       `json:"post_ID"`
 	PostName        string    `json:"post_name"`
 	PostDescription string    `json:"post_description"`
 	SecurityFlag    bool      `json:"security_flag"`
 	CreatedAt       time.Time `json:"created_at"`
 	UpdatedAt       time.Time `json:"updated_at"`
 	Tags            []string  `json:"tags"`
-	UserId          int       `json:"user_id"`
+	UserID          int       `json:"user_ID"`
 }
 
 type GetPostListResponse struct {
 	Posts []*GetPostResponse `json:"posts"`
+}
+
+type PostCommentRequest struct {
+	PostID      int    `json:"post_ID"`
+	Description string `json:"description"`
+}
+
+type GetCommentResponse struct {
+	CommentID   int    `json:"comment_ID"`
+	UserID      int    `json:"user_ID"`
+	PostID      int    `json:"post_ID"`
+	Description string `json:"description"`
+}
+
+type GetListCommentResponse struct {
+	Comments []*GetCommentResponse `json:"comments"`
 }

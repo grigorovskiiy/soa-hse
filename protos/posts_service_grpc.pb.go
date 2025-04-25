@@ -27,7 +27,11 @@ type PostsServiceClient interface {
 	DeletePost(ctx context.Context, in *PostID, opts ...grpc.CallOption) (*empty.Empty, error)
 	UpdatePost(ctx context.Context, in *UpdatePostRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 	GetPost(ctx context.Context, in *PostID, opts ...grpc.CallOption) (*PostDataResponse, error)
-	GetPostList(ctx context.Context, in *ListPostsRequest, opts ...grpc.CallOption) (*ListPostsResponse, error)
+	GetPostList(ctx context.Context, in *PaginatedListRequest, opts ...grpc.CallOption) (*ListPostsResponse, error)
+	PostComment(ctx context.Context, in *PostCommentRequest, opts ...grpc.CallOption) (*empty.Empty, error)
+	PostLike(ctx context.Context, in *PostID, opts ...grpc.CallOption) (*empty.Empty, error)
+	PostView(ctx context.Context, in *PostID, opts ...grpc.CallOption) (*empty.Empty, error)
+	GetCommentList(ctx context.Context, in *PaginatedListRequest, opts ...grpc.CallOption) (*ListCommentsResponse, error)
 }
 
 type postsServiceClient struct {
@@ -74,9 +78,45 @@ func (c *postsServiceClient) GetPost(ctx context.Context, in *PostID, opts ...gr
 	return out, nil
 }
 
-func (c *postsServiceClient) GetPostList(ctx context.Context, in *ListPostsRequest, opts ...grpc.CallOption) (*ListPostsResponse, error) {
+func (c *postsServiceClient) GetPostList(ctx context.Context, in *PaginatedListRequest, opts ...grpc.CallOption) (*ListPostsResponse, error) {
 	out := new(ListPostsResponse)
 	err := c.cc.Invoke(ctx, "/PostsService/GetPostList", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *postsServiceClient) PostComment(ctx context.Context, in *PostCommentRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
+	err := c.cc.Invoke(ctx, "/PostsService/PostComment", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *postsServiceClient) PostLike(ctx context.Context, in *PostID, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
+	err := c.cc.Invoke(ctx, "/PostsService/PostLike", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *postsServiceClient) PostView(ctx context.Context, in *PostID, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
+	err := c.cc.Invoke(ctx, "/PostsService/PostView", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *postsServiceClient) GetCommentList(ctx context.Context, in *PaginatedListRequest, opts ...grpc.CallOption) (*ListCommentsResponse, error) {
+	out := new(ListCommentsResponse)
+	err := c.cc.Invoke(ctx, "/PostsService/GetCommentList", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +131,11 @@ type PostsServiceServer interface {
 	DeletePost(context.Context, *PostID) (*empty.Empty, error)
 	UpdatePost(context.Context, *UpdatePostRequest) (*empty.Empty, error)
 	GetPost(context.Context, *PostID) (*PostDataResponse, error)
-	GetPostList(context.Context, *ListPostsRequest) (*ListPostsResponse, error)
+	GetPostList(context.Context, *PaginatedListRequest) (*ListPostsResponse, error)
+	PostComment(context.Context, *PostCommentRequest) (*empty.Empty, error)
+	PostLike(context.Context, *PostID) (*empty.Empty, error)
+	PostView(context.Context, *PostID) (*empty.Empty, error)
+	GetCommentList(context.Context, *PaginatedListRequest) (*ListCommentsResponse, error)
 	mustEmbedUnimplementedPostsServiceServer()
 }
 
@@ -111,8 +155,20 @@ func (UnimplementedPostsServiceServer) UpdatePost(context.Context, *UpdatePostRe
 func (UnimplementedPostsServiceServer) GetPost(context.Context, *PostID) (*PostDataResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPost not implemented")
 }
-func (UnimplementedPostsServiceServer) GetPostList(context.Context, *ListPostsRequest) (*ListPostsResponse, error) {
+func (UnimplementedPostsServiceServer) GetPostList(context.Context, *PaginatedListRequest) (*ListPostsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPostList not implemented")
+}
+func (UnimplementedPostsServiceServer) PostComment(context.Context, *PostCommentRequest) (*empty.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PostComment not implemented")
+}
+func (UnimplementedPostsServiceServer) PostLike(context.Context, *PostID) (*empty.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PostLike not implemented")
+}
+func (UnimplementedPostsServiceServer) PostView(context.Context, *PostID) (*empty.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PostView not implemented")
+}
+func (UnimplementedPostsServiceServer) GetCommentList(context.Context, *PaginatedListRequest) (*ListCommentsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetCommentList not implemented")
 }
 func (UnimplementedPostsServiceServer) mustEmbedUnimplementedPostsServiceServer() {}
 
@@ -200,7 +256,7 @@ func _PostsService_GetPost_Handler(srv interface{}, ctx context.Context, dec fun
 }
 
 func _PostsService_GetPostList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListPostsRequest)
+	in := new(PaginatedListRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -212,7 +268,79 @@ func _PostsService_GetPostList_Handler(srv interface{}, ctx context.Context, dec
 		FullMethod: "/PostsService/GetPostList",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PostsServiceServer).GetPostList(ctx, req.(*ListPostsRequest))
+		return srv.(PostsServiceServer).GetPostList(ctx, req.(*PaginatedListRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PostsService_PostComment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PostCommentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PostsServiceServer).PostComment(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/PostsService/PostComment",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PostsServiceServer).PostComment(ctx, req.(*PostCommentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PostsService_PostLike_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PostID)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PostsServiceServer).PostLike(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/PostsService/PostLike",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PostsServiceServer).PostLike(ctx, req.(*PostID))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PostsService_PostView_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PostID)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PostsServiceServer).PostView(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/PostsService/PostView",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PostsServiceServer).PostView(ctx, req.(*PostID))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PostsService_GetCommentList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PaginatedListRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PostsServiceServer).GetCommentList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/PostsService/GetCommentList",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PostsServiceServer).GetCommentList(ctx, req.(*PaginatedListRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -243,6 +371,22 @@ var PostsService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetPostList",
 			Handler:    _PostsService_GetPostList_Handler,
+		},
+		{
+			MethodName: "PostComment",
+			Handler:    _PostsService_PostComment_Handler,
+		},
+		{
+			MethodName: "PostLike",
+			Handler:    _PostsService_PostLike_Handler,
+		},
+		{
+			MethodName: "PostView",
+			Handler:    _PostsService_PostView_Handler,
+		},
+		{
+			MethodName: "GetCommentList",
+			Handler:    _PostsService_GetCommentList_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
