@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/grigorovskiiy/soa-hse/users_service/internal/config"
 	"github.com/grigorovskiiy/soa-hse/users_service/internal/infrastructure/logger"
 	"github.com/grigorovskiiy/soa-hse/users_service/internal/infrastructure/models"
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -11,12 +12,11 @@ import (
 	"go.uber.org/fx"
 
 	"github.com/uptrace/bun"
-	"os"
 )
 
-func InitDb(lc fx.Lifecycle) *bun.DB {
-	dsn := fmt.Sprintf("postgres://%s:%s@users-postgres%s/%s?sslmode=disable",
-		os.Getenv("USERS_POSTGRES_USER"), os.Getenv("USERS_POSTGRES_PASSWORD"), os.Getenv("USERS_POSTGRES_PORT"), os.Getenv("USERS_POSTGRES_DB"))
+func InitDb(lc fx.Lifecycle, cfg *config.Config) *bun.DB {
+	dsn := fmt.Sprintf("postgres://%s:%s@%s%s/%s?sslmode=disable",
+		cfg.UsersPostgresUser, cfg.UsersPostgresPassword, cfg.UsersPostgresHost, cfg.UsersPostgresPort, cfg.UsersPostgresDb)
 
 	sqldb, err := sql.Open("pgx", dsn)
 	if err != nil {

@@ -2,6 +2,7 @@ package kafka
 
 import (
 	"context"
+	"github.com/grigorovskiiy/soa-hse/users_service/internal/config"
 	"github.com/grigorovskiiy/soa-hse/users_service/internal/infrastructure/logger"
 	"github.com/segmentio/kafka-go"
 	"go.uber.org/fx"
@@ -16,9 +17,9 @@ type BaseProducer struct {
 	producer
 }
 
-func NewBaseProducer(lc fx.Lifecycle) *BaseProducer {
+func NewBaseProducer(lc fx.Lifecycle, cfg *config.Config) *BaseProducer {
 	writer := &kafka.Writer{
-		Addr:      kafka.TCP("kafka:9092"),
+		Addr:      kafka.TCP(cfg.Brokers...),
 		Balancer:  &kafka.Hash{Hasher: adler32.New()},
 		Transport: kafka.DefaultTransport,
 	}

@@ -20,6 +20,11 @@ services:
       - users_postgres_data:/var/lib/postgresql/data
     networks:
       - soa-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U username -d users_db" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     ports:
       - "5432:5432"
 
@@ -35,6 +40,11 @@ services:
       - posts_postgres_data:/var/lib/postgresql/data
     networks:
       - soa-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U username -d posts_db" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     ports:
       - "5433:5432"
 
@@ -56,8 +66,10 @@ services:
     networks:
       - soa-network
     depends_on:
-      - api-gateway-service
-      - users-postgres
+      users-postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
 
   posts-service:
     build:
@@ -68,8 +80,10 @@ services:
     networks:
       - soa-network
     depends_on:
-      - api-gateway-service
-      - posts-postgres
+      posts-postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.1.2
@@ -100,6 +114,11 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     networks:
       - soa-network
+    healthcheck:
+      test: [ "CMD-SHELL", "kafka-topics --bootstrap-server kafka:9092 --list" ]
+      interval: 10s
+      timeout: 10s
+      retries: 10
     depends_on:
       - zookeeper
 

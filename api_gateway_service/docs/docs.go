@@ -37,7 +37,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.CreatePostRequest"
+                            "$ref": "#/definitions/github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.CreatePostRequest"
                         }
                     }
                 ],
@@ -91,7 +91,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.GetDeletePostRequest"
+                            "$ref": "#/definitions/github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.PostID"
                         }
                     }
                 ],
@@ -100,6 +100,65 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/get_comment_list": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Получить пагинированный список комментариев",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Post"
+                ],
+                "summary": "Получить пагинированный список комментариев",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Номер страницы",
+                        "name": "page",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Количество элементов на странице",
+                        "name": "page_size",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.GetCommentListResponse"
                         }
                     },
                     "400": {
@@ -140,20 +199,18 @@ const docTemplate = `{
                 "summary": "Получить пост",
                 "parameters": [
                     {
+                        "type": "integer",
                         "description": "ID поста",
                         "name": "post_id",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.GetDeletePostRequest"
-                        }
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.GetPostResponse"
+                            "$ref": "#/definitions/github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.GetPostResponse"
                         }
                     },
                     "400": {
@@ -194,20 +251,25 @@ const docTemplate = `{
                 "summary": "Получить пагинированный список постов",
                 "parameters": [
                     {
-                        "description": "Параметры списка",
-                        "name": "list_params",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.GetPostListRequest"
-                        }
+                        "type": "integer",
+                        "description": "Номер страницы",
+                        "name": "page",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Количество элементов на странице",
+                        "name": "page_size",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.GetPostListResponse"
+                            "$ref": "#/definitions/github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.GetPostListResponse"
                         }
                     },
                     "400": {
@@ -253,7 +315,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.GetLoginRequest"
+                            "$ref": "#/definitions/github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.GetLoginRequest"
                         }
                     },
                     "400": {
@@ -294,7 +356,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.GetLoginRequest"
+                            "$ref": "#/definitions/github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.GetLoginRequest"
                         }
                     }
                 ],
@@ -307,6 +369,168 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/post_comment": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Добавить комментарий к посту",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Post"
+                ],
+                "summary": "Добавить комментарий к посту",
+                "parameters": [
+                    {
+                        "description": "Информация о комментарии",
+                        "name": "comment_info",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.PostCommentRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/post_like": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Добавить лайк к посту",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Post"
+                ],
+                "summary": "Добавить лайк к посту",
+                "parameters": [
+                    {
+                        "description": "ID поста",
+                        "name": "post_id",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.PostID"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/post_view": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Добавить просмотр к посту",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Post"
+                ],
+                "summary": "Добавить просмотр к посту",
+                "parameters": [
+                    {
+                        "description": "ID поста",
+                        "name": "post_id",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.PostID"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "type": "string"
                         }
@@ -334,7 +558,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.RegisterRequest"
+                            "$ref": "#/definitions/github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.RegisterRequest"
                         }
                     }
                 ],
@@ -373,7 +597,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.UpdatePostRequest"
+                            "$ref": "#/definitions/github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.UpdatePostRequest"
                         }
                     }
                 ],
@@ -430,7 +654,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.UserUpdateRequest"
+                            "$ref": "#/definitions/github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.UserUpdateRequest"
                         }
                     }
                 ],
@@ -458,7 +682,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "models.CreatePostRequest": {
+        "github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.CreatePostRequest": {
             "type": "object",
             "properties": {
                 "post_description": {
@@ -478,15 +702,35 @@ const docTemplate = `{
                 }
             }
         },
-        "models.GetDeletePostRequest": {
+        "github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.GetCommentListResponse": {
             "type": "object",
             "properties": {
-                "post_id": {
+                "comments": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.GetCommentResponse"
+                    }
+                }
+            }
+        },
+        "github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.GetCommentResponse": {
+            "type": "object",
+            "properties": {
+                "comment_ID": {
+                    "type": "integer"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "post_ID": {
+                    "type": "integer"
+                },
+                "user_ID": {
                     "type": "integer"
                 }
             }
         },
-        "models.GetLoginRequest": {
+        "github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.GetLoginRequest": {
             "type": "object",
             "properties": {
                 "login": {
@@ -497,39 +741,28 @@ const docTemplate = `{
                 }
             }
         },
-        "models.GetPostListRequest": {
-            "type": "object",
-            "properties": {
-                "page": {
-                    "type": "integer"
-                },
-                "page_size": {
-                    "type": "integer"
-                }
-            }
-        },
-        "models.GetPostListResponse": {
+        "github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.GetPostListResponse": {
             "type": "object",
             "properties": {
                 "posts": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.GetPostResponse"
+                        "$ref": "#/definitions/github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.GetPostResponse"
                     }
                 }
             }
         },
-        "models.GetPostResponse": {
+        "github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.GetPostResponse": {
             "type": "object",
             "properties": {
                 "created_at": {
                     "type": "string"
                 },
+                "post_ID": {
+                    "type": "integer"
+                },
                 "post_description": {
                     "type": "string"
-                },
-                "post_id": {
-                    "type": "integer"
                 },
                 "post_name": {
                     "type": "string"
@@ -546,12 +779,31 @@ const docTemplate = `{
                 "updated_at": {
                     "type": "string"
                 },
-                "user_id": {
+                "user_ID": {
                     "type": "integer"
                 }
             }
         },
-        "models.RegisterRequest": {
+        "github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.PostCommentRequest": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "post_ID": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.PostID": {
+            "type": "object",
+            "properties": {
+                "post_ID": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.RegisterRequest": {
             "type": "object",
             "properties": {
                 "email": {
@@ -565,14 +817,14 @@ const docTemplate = `{
                 }
             }
         },
-        "models.UpdatePostRequest": {
+        "github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.UpdatePostRequest": {
             "type": "object",
             "properties": {
+                "post_ID": {
+                    "type": "integer"
+                },
                 "post_description": {
                     "type": "string"
-                },
-                "post_id": {
-                    "type": "integer"
                 },
                 "post_name": {
                     "type": "string"
@@ -588,7 +840,7 @@ const docTemplate = `{
                 }
             }
         },
-        "models.UserUpdateRequest": {
+        "github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.UserUpdateRequest": {
             "type": "object",
             "properties": {
                 "email": {

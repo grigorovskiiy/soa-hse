@@ -118,7 +118,20 @@ func (r *PRepository) CreatePost(post *models.DbPost) error {
 }
 
 func (r *PRepository) PostComment(comment *models.DbComment) error {
-	_, err := r.db.NewInsert().Model(comment).Exec(context.Background())
+	exists, err := r.db.NewSelect().
+		Model((*models.DbPost)(nil)).
+		Where("id = ?", comment.PostId).
+		Exists(context.Background())
+	if err != nil {
+		logger.Logger.Error("post comment db error", err.Error())
+		return err
+	}
+	if !exists {
+		logger.Logger.Info(errors.PostNotFoundError{}.Error())
+		return errors.PostNotFoundError{}
+	}
+
+	_, err = r.db.NewInsert().Model(comment).Exec(context.Background())
 	if err != nil {
 		logger.Logger.Error("execing post comment db error", "error", err.Error())
 		return err
@@ -144,8 +157,20 @@ func (r *PRepository) GetCommentList(page int32, limit int32, userID int32) ([]*
 	return comments, nil
 }
 
-func (r *PRepository) PostLike(comment *models.DbLike) error {
-	_, err := r.db.NewInsert().Model(comment).Exec(context.Background())
+func (r *PRepository) PostLike(like *models.DbLike) error {
+	exists, err := r.db.NewSelect().
+		Model((*models.DbPost)(nil)).
+		Where("id = ?", like.PostId).
+		Exists(context.Background())
+	if err != nil {
+		logger.Logger.Error("post comment db error", err.Error())
+		return err
+	}
+	if !exists {
+		logger.Logger.Info(errors.PostNotFoundError{}.Error())
+		return errors.PostNotFoundError{}
+	}
+	_, err = r.db.NewInsert().Model(like).Exec(context.Background())
 	if err != nil {
 		logger.Logger.Error("execing post like db error", "error", err.Error())
 		return err
@@ -155,7 +180,19 @@ func (r *PRepository) PostLike(comment *models.DbLike) error {
 }
 
 func (r *PRepository) PostView(view *models.DbView) error {
-	_, err := r.db.NewInsert().Model(view).Exec(context.Background())
+	exists, err := r.db.NewSelect().
+		Model((*models.DbPost)(nil)).
+		Where("id = ?", view.PostId).
+		Exists(context.Background())
+	if err != nil {
+		logger.Logger.Error("post comment db error", err.Error())
+		return err
+	}
+	if !exists {
+		logger.Logger.Info(errors.PostNotFoundError{}.Error())
+		return errors.PostNotFoundError{}
+	}
+	_, err = r.db.NewInsert().Model(view).Exec(context.Background())
 	if err != nil {
 		logger.Logger.Error("execing post view db error", "error", err.Error())
 		return err

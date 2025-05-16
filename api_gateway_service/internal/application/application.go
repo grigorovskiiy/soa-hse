@@ -97,7 +97,7 @@ func (a *GatewayApp) GetUserInfo(w http.ResponseWriter, r *http.Request) {
 // @Tags         Post
 // @Security BearerAuth
 // @Produce      json
-// @Param 		 post_id body models.GetDeletePostRequest true "ID поста"
+// @Param 		 post_id query int true "ID поста"
 // @Success      200  {object} models.GetPostResponse
 // @Failure 	 400 {string} string
 // @Failure 	 401  {string} string
@@ -145,7 +145,8 @@ func (a *GatewayApp) GetPost(w http.ResponseWriter, r *http.Request) {
 // @Tags         Post
 // @Security BearerAuth
 // @Produce      json
-// @Param 		 list_params body models.GetPostListRequest true "Параметры списка"
+// @Param        page query int true "Номер страницы"
+// @Param        page_size query int true "Количество элементов на странице"
 // @Success      200  {object} models.GetPostListResponse
 // @Failure 	 400 {string} string
 // @Failure 	 401  {string} string
@@ -245,7 +246,7 @@ func (a *GatewayApp) CreatePost(w http.ResponseWriter, r *http.Request) {
 // @Tags         Post
 // @Security BearerAuth
 // @Produce      json
-// @Param 		 post_id body models.GetDeletePostRequest true "ID поста"
+// @Param 		 post_id body models.PostID true "ID поста"
 // @Success      200  {string} string
 // @Failure 	 400 {string} string
 // @Failure 	 401  {string} string
@@ -333,6 +334,18 @@ func (a *GatewayApp) UpdatePost(w http.ResponseWriter, r *http.Request) {
 	writeRes(w, http.StatusOK, "Post is updated")
 }
 
+// PostComment godoc
+// @Summary      Добавить комментарий к посту
+// @Description  Добавить комментарий к посту
+// @Tags         Post
+// @Security BearerAuth
+// @Produce      json
+// @Param 		 comment_info body models.PostCommentRequest true "Информация о комментарии"
+// @Success      200  {string} string
+// @Failure 	 400 {string} string
+// @Failure 	 401  {string} string
+// @Failure 	 500 {string} string
+// @Router       /post_comment [post]
 func (a *GatewayApp) PostComment(w http.ResponseWriter, r *http.Request) {
 	logger := logger.Logger.With("path", r.URL.Path, "method", r.Method)
 
@@ -369,6 +382,18 @@ func (a *GatewayApp) PostComment(w http.ResponseWriter, r *http.Request) {
 	writeRes(w, http.StatusOK, "Comment is posted")
 }
 
+// PostLike godoc
+// @Summary      Добавить лайк к посту
+// @Description  Добавить лайк к посту
+// @Tags         Post
+// @Security BearerAuth
+// @Produce      json
+// @Param 		 post_id body models.PostID true "ID поста"
+// @Success      200  {string} string
+// @Failure 	 400 {string} string
+// @Failure 	 401  {string} string
+// @Failure 	 500 {string} string
+// @Router       /post_like [post]
 func (a *GatewayApp) PostLike(w http.ResponseWriter, r *http.Request) {
 	logger := logger.Logger.With("path", r.URL.Path, "method", r.Method)
 
@@ -404,6 +429,18 @@ func (a *GatewayApp) PostLike(w http.ResponseWriter, r *http.Request) {
 	writeRes(w, http.StatusOK, "Like is posted")
 }
 
+// PostView godoc
+// @Summary      Добавить просмотр к посту
+// @Description  Добавить просмотр к посту
+// @Tags         Post
+// @Security BearerAuth
+// @Produce      json
+// @Param 		 post_id body models.PostID true "ID поста"
+// @Success      200  {string} string
+// @Failure 	 400 {string} string
+// @Failure 	 401  {string} string
+// @Failure 	 500 {string} string
+// @Router       /post_view [post]
 func (a *GatewayApp) PostView(w http.ResponseWriter, r *http.Request) {
 	logger := logger.Logger.With("path", r.URL.Path, "method", r.Method)
 
@@ -440,6 +477,19 @@ func (a *GatewayApp) PostView(w http.ResponseWriter, r *http.Request) {
 	writeRes(w, http.StatusOK, "View is posted")
 }
 
+// GetCommentList godoc
+// @Summary      Получить пагинированный список комментариев
+// @Description  Получить пагинированный список комментариев
+// @Tags         Post
+// @Security BearerAuth
+// @Produce      json
+// @Param        page query int true "Номер страницы"
+// @Param        page_size query int true "Количество элементов на странице"
+// @Success      200  {object} models.GetCommentListResponse
+// @Failure 	 400 {string} string
+// @Failure 	 401  {string} string
+// @Failure 	 500 {string} string
+// @Router       /get_comment_list [get]
 func (a *GatewayApp) GetCommentList(w http.ResponseWriter, r *http.Request) {
 	logger := logger.Logger.With("path", r.URL.Path, "method", r.Method)
 

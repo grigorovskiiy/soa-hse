@@ -4,12 +4,12 @@ import (
 	"context"
 	"errors"
 	"github.com/grigorovskiiy/soa-hse/users_service/internal/application"
+	"github.com/grigorovskiiy/soa-hse/users_service/internal/config"
 	"go.uber.org/fx"
 	"net/http"
-	"os"
 )
 
-func NewServer(app *application.UsersApp) *http.Server {
+func NewServer(app *application.UsersApp, cfg *config.Config) *http.Server {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/register", http.HandlerFunc(app.Register))
@@ -18,7 +18,7 @@ func NewServer(app *application.UsersApp) *http.Server {
 	mux.HandleFunc("/update_user_info", http.HandlerFunc(app.UpdateUserInfo))
 
 	return &http.Server{
-		Addr:    os.Getenv("USERS_SERVICE_PORT"),
+		Addr:    cfg.UsersServicePort,
 		Handler: mux,
 	}
 

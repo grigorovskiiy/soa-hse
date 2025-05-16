@@ -71,13 +71,13 @@ func FromProtoPostCommentResponse(pb *pb.CommentDataResponse) *GetCommentRespons
 	}
 }
 
-func FromProtoListCommentResponse(pb *pb.ListCommentsResponse) *GetListCommentResponse {
+func FromProtoListCommentResponse(pb *pb.ListCommentsResponse) *GetCommentListResponse {
 	comments := make([]*GetCommentResponse, len(pb.Comments))
 	for i, comment := range pb.Comments {
 		comments[i] = FromProtoPostCommentResponse(comment)
 	}
 
-	return &GetListCommentResponse{
+	return &GetCommentListResponse{
 		Comments: comments,
 	}
 }

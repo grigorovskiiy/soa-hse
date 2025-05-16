@@ -4,10 +4,13 @@ import (
 	"context"
 	"errors"
 	"github.com/golang/protobuf/ptypes/empty"
+	"github.com/grigorovskiiy/soa-hse/posts_service/internal/config"
 	"github.com/grigorovskiiy/soa-hse/posts_service/internal/infrastructure/logger"
+	"github.com/grigorovskiiy/soa-hse/posts_service/internal/infrastructure/models"
 	pb "github.com/grigorovskiiy/soa-hse/protos"
 	"google.golang.org/grpc/metadata"
 	"strconv"
+	"time"
 )
 
 type PostsService interface {
@@ -22,18 +25,19 @@ type PostsService interface {
 	GetCommentList(context.Context, *pb.PaginatedListRequest, int32) (*pb.ListCommentsResponse, error)
 }
 
-type KafkaService interface {
-	SendUpdatePost(context.Context, string, any) error
+type EventsService interface {
+	SendEvent(context.Context, string, any) error
 }
 
 type PostsServiceServer struct {
 	pb.UnimplementedPostsServiceServer
-	PostsService PostsService
-	KafkaService KafkaService
+	PostsService  PostsService
+	EventsService EventsService
+	cfg           *config.Config
 }
 
-func NewPostsServer(pS PostsService, kS KafkaService) *PostsServiceServer {
-	return &PostsServiceServer{PostsService: pS, KafkaService: kS}
+func NewPostsServer(pS PostsService, eS EventsService, cfg *config.Config) *PostsServiceServer {
+	return &PostsServiceServer{PostsService: pS, EventsService: eS, cfg: cfg}
 }
 
 func (s *PostsServiceServer) CreatePost(ctx context.Context, pb *pb.PostDataRequest) (*empty.Empty, error) {
@@ -45,8 +49,7 @@ func (s *PostsServiceServer) CreatePost(ctx context.Context, pb *pb.PostDataRequ
 		return nil, err
 	}
 
-	err = s.PostsService.CreatePost(ctx, pb, userID)
-	if err != nil {
+	if err = s.PostsService.CreatePost(ctx, pb, userID); err != nil {
 		logger.Error("create post error", "error", err.Error())
 		return nil, err
 	}
@@ -65,11 +68,11 @@ func (s *PostsServiceServer) DeletePost(ctx context.Context, pb *pb.PostID) (*em
 		return nil, err
 	}
 
-	err = s.PostsService.DeletePost(ctx, pb, userID)
-	if err != nil {
+	if err = s.PostsService.DeletePost(ctx, pb, userID); err != nil {
 		logger.Error("delete post error", "error", err.Error())
 		return nil, err
 	}
+
 	logger.Info("posts grpc request completed")
 	return &empty.Empty{}, nil
 }
@@ -83,13 +86,12 @@ func (s *PostsServiceServer) UpdatePost(ctx context.Context, pb *pb.UpdatePostRe
 		return nil, err
 	}
 
-	err = s.PostsService.UpdatePost(ctx, pb, userID)
-	if err != nil {
+	if err = s.PostsService.UpdatePost(ctx, pb, userID); err != nil {
 		logger.Error("update post error", "error", err.Error())
 		return nil, err
 	}
-	logger.Info("posts grpc request completed")
 
+	logger.Info("posts grpc request completed")
 	return &empty.Empty{}, nil
 }
 
@@ -127,6 +129,7 @@ func (s *PostsServiceServer) GetPostList(ctx context.Context, pb *pb.PaginatedLi
 		logger.Error("get post list error", "error", err.Error())
 		return nil, err
 	}
+
 	logger.Info("posts grpc request completed")
 	return postList, nil
 }
@@ -141,11 +144,16 @@ func (s *PostsServiceServer) PostComment(ctx context.Context, pb *pb.PostComment
 		return nil, err
 	}
 
-	err = s.PostsService.PostComment(ctx, pb, userID)
-	if err != nil {
+	if err = s.PostsService.PostComment(ctx, pb, userID); err != nil {
 		logger.Error("post comment error", "error", err.Error())
 		return nil, err
 	}
+
+	if err = s.EventsService.SendEvent(ctx, s.cfg.CommentsTopic, models.LikeViewCommentUpdate{PostId: int(pb.PostId), UserId: int(userID), Time: time.Now()}); err != nil {
+		logger.Error("post comment send event error", "error", err.Error())
+		return nil, err
+	}
+
 	logger.Info("posts grpc request completed")
 	return &empty.Empty{}, nil
 }
@@ -158,11 +166,18 @@ func (s *PostsServiceServer) PostLike(ctx context.Context, pb *pb.PostID) (*empt
 		logger.Error("error getting userID from ctx", "error", err.Error())
 		return nil, err
 	}
-	err = s.PostsService.PostLike(ctx, pb, userID)
-	if err != nil {
+
+	if err = s.PostsService.PostLike(ctx, pb, userID); err != nil {
 		logger.Error("post like error", "error", err.Error())
 		return nil, err
 	}
+
+	if err = s.EventsService.SendEvent(ctx, s.cfg.LikesTopic, models.LikeViewCommentUpdate{PostId: int(pb.PostId), UserId: int(userID), Time: time.Now()}); err != nil {
+		logger.Error("post like send event error", "error", err.Error())
+		return nil, err
+
+	}
+
 	logger.Info("posts grpc request completed")
 	return &empty.Empty{}, nil
 }
@@ -175,16 +190,22 @@ func (s *PostsServiceServer) PostView(ctx context.Context, pb *pb.PostID) (*empt
 		logger.Error("error getting userID from ctx", "error", err.Error())
 		return nil, err
 	}
-	err = s.PostsService.PostView(ctx, pb, userID)
-	if err != nil {
+
+	if err = s.PostsService.PostView(ctx, pb, userID); err != nil {
 		logger.Error("post view error", "error", err.Error())
 		return nil, err
 	}
+
+	if err = s.EventsService.SendEvent(ctx, s.cfg.ViewsTopic, models.LikeViewCommentUpdate{PostId: int(pb.PostId), UserId: int(userID), Time: time.Now()}); err != nil {
+		logger.Error("post view send event error", "error", err.Error())
+		return nil, err
+	}
+
 	logger.Info("posts grpc request completed")
 	return &empty.Empty{}, nil
 }
 
-func (s *PostsServiceServer) GetCommentsList(ctx context.Context, pb *pb.PaginatedListRequest) (*pb.ListCommentsResponse, error) {
+func (s *PostsServiceServer) GetCommentList(ctx context.Context, pb *pb.PaginatedListRequest) (*pb.ListCommentsResponse, error) {
 	logger := logger.Logger.With("method", "GetCommentsList")
 	logger.Info("posts grpc request started")
 	userID, err := GetUserID(ctx)
@@ -192,11 +213,13 @@ func (s *PostsServiceServer) GetCommentsList(ctx context.Context, pb *pb.Paginat
 		logger.Error("error getting userID from ctx", "error", err.Error())
 		return nil, err
 	}
+
 	comments, err := s.PostsService.GetCommentList(ctx, pb, userID)
 	if err != nil {
 		logger.Error("get comments list error", "error", err.Error())
 		return nil, err
 	}
+
 	logger.Info("posts grpc request completed")
 	return comments, nil
 }

@@ -4,9 +4,11 @@ import (
 	"github.com/grigorovskiiy/soa-hse/posts_service/internal/application"
 	"github.com/grigorovskiiy/soa-hse/posts_service/internal/config"
 	"github.com/grigorovskiiy/soa-hse/posts_service/internal/infrastructure/db"
+	"github.com/grigorovskiiy/soa-hse/posts_service/internal/infrastructure/kafka"
 	"github.com/grigorovskiiy/soa-hse/posts_service/internal/infrastructure/logger"
 	"github.com/grigorovskiiy/soa-hse/posts_service/internal/infrastructure/repository"
 	"github.com/grigorovskiiy/soa-hse/posts_service/internal/server"
+	"github.com/grigorovskiiy/soa-hse/posts_service/internal/service/eventsservice"
 	"github.com/grigorovskiiy/soa-hse/posts_service/internal/service/postsservice"
 	"github.com/joho/godotenv"
 	"go.uber.org/fx"
@@ -28,6 +30,11 @@ func main() {
 		}),
 		fx.Provide(postsservice.NewPService),
 		fx.Provide(func(s *postsservice.PService) application.PostsService {
+			return s
+		}),
+		fx.Provide(kafka.NewBaseProducer),
+		fx.Provide(eventsservice.NewKafkaService),
+		fx.Provide(func(s *eventsservice.KafkaService) application.EventsService {
 			return s
 		}),
 		fx.Provide(application.NewPostsServer),

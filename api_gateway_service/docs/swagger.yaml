@@ -1,5 +1,5 @@
 definitions:
-  models.CreatePostRequest:
+  github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.CreatePostRequest:
     properties:
       post_description:
         type: string
@@ -12,40 +12,46 @@ definitions:
           type: string
         type: array
     type: object
-  models.GetDeletePostRequest:
+  github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.GetCommentListResponse:
     properties:
-      post_id:
+      comments:
+        items:
+          $ref: '#/definitions/github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.GetCommentResponse'
+        type: array
+    type: object
+  github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.GetCommentResponse:
+    properties:
+      comment_ID:
+        type: integer
+      description:
+        type: string
+      post_ID:
+        type: integer
+      user_ID:
         type: integer
     type: object
-  models.GetLoginRequest:
+  github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.GetLoginRequest:
     properties:
       login:
         type: string
       password:
         type: string
     type: object
-  models.GetPostListRequest:
-    properties:
-      page:
-        type: integer
-      page_size:
-        type: integer
-    type: object
-  models.GetPostListResponse:
+  github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.GetPostListResponse:
     properties:
       posts:
         items:
-          $ref: '#/definitions/models.GetPostResponse'
+          $ref: '#/definitions/github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.GetPostResponse'
         type: array
     type: object
-  models.GetPostResponse:
+  github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.GetPostResponse:
     properties:
       created_at:
         type: string
+      post_ID:
+        type: integer
       post_description:
         type: string
-      post_id:
-        type: integer
       post_name:
         type: string
       security_flag:
@@ -56,10 +62,22 @@ definitions:
         type: array
       updated_at:
         type: string
-      user_id:
+      user_ID:
         type: integer
     type: object
-  models.RegisterRequest:
+  github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.PostCommentRequest:
+    properties:
+      description:
+        type: string
+      post_ID:
+        type: integer
+    type: object
+  github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.PostID:
+    properties:
+      post_ID:
+        type: integer
+    type: object
+  github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.RegisterRequest:
     properties:
       email:
         type: string
@@ -68,12 +86,12 @@ definitions:
       password:
         type: string
     type: object
-  models.UpdatePostRequest:
+  github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.UpdatePostRequest:
     properties:
+      post_ID:
+        type: integer
       post_description:
         type: string
-      post_id:
-        type: integer
       post_name:
         type: string
       security_flag:
@@ -83,7 +101,7 @@ definitions:
           type: string
         type: array
     type: object
-  models.UserUpdateRequest:
+  github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.UserUpdateRequest:
     properties:
       email:
         type: string
@@ -111,7 +129,7 @@ paths:
         name: post_info
         required: true
         schema:
-          $ref: '#/definitions/models.CreatePostRequest'
+          $ref: '#/definitions/github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.CreatePostRequest'
       produces:
       - application/json
       responses:
@@ -145,7 +163,7 @@ paths:
         name: post_id
         required: true
         schema:
-          $ref: '#/definitions/models.GetDeletePostRequest'
+          $ref: '#/definitions/github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.PostID'
       produces:
       - application/json
       responses:
@@ -170,23 +188,60 @@ paths:
       summary: Удалить пост
       tags:
       - Post
-  /get_post:
+  /get_comment_list:
     get:
-      description: Получить пост
+      description: Получить пагинированный список комментариев
       parameters:
-      - description: ID поста
-        in: body
-        name: post_id
+      - description: Номер страницы
+        in: query
+        name: page
         required: true
-        schema:
-          $ref: '#/definitions/models.GetDeletePostRequest'
+        type: integer
+      - description: Количество элементов на странице
+        in: query
+        name: page_size
+        required: true
+        type: integer
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.GetPostResponse'
+            $ref: '#/definitions/github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.GetCommentListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Получить пагинированный список комментариев
+      tags:
+      - Post
+  /get_post:
+    get:
+      description: Получить пост
+      parameters:
+      - description: ID поста
+        in: query
+        name: post_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.GetPostResponse'
         "400":
           description: Bad Request
           schema:
@@ -208,19 +263,23 @@ paths:
     get:
       description: Получить пагинированный список постов
       parameters:
-      - description: Параметры списка
-        in: body
-        name: list_params
+      - description: Номер страницы
+        in: query
+        name: page
         required: true
-        schema:
-          $ref: '#/definitions/models.GetPostListRequest'
+        type: integer
+      - description: Количество элементов на странице
+        in: query
+        name: page_size
+        required: true
+        type: integer
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.GetPostListResponse'
+            $ref: '#/definitions/github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.GetPostListResponse'
         "400":
           description: Bad Request
           schema:
@@ -249,7 +308,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.GetLoginRequest'
+            $ref: '#/definitions/github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.GetLoginRequest'
         "400":
           description: Bad Request
           schema:
@@ -276,7 +335,7 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/models.GetLoginRequest'
+          $ref: '#/definitions/github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.GetLoginRequest'
       produces:
       - application/json
       responses:
@@ -291,6 +350,108 @@ paths:
       summary: Войти
       tags:
       - Auth
+  /post_comment:
+    post:
+      description: Добавить комментарий к посту
+      parameters:
+      - description: Информация о комментарии
+        in: body
+        name: comment_info
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.PostCommentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Добавить комментарий к посту
+      tags:
+      - Post
+  /post_like:
+    post:
+      description: Добавить лайк к посту
+      parameters:
+      - description: ID поста
+        in: body
+        name: post_id
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.PostID'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Добавить лайк к посту
+      tags:
+      - Post
+  /post_view:
+    post:
+      description: Добавить просмотр к посту
+      parameters:
+      - description: ID поста
+        in: body
+        name: post_id
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.PostID'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Добавить просмотр к посту
+      tags:
+      - Post
   /register:
     post:
       consumes:
@@ -302,7 +463,7 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/models.RegisterRequest'
+          $ref: '#/definitions/github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.RegisterRequest'
       produces:
       - application/json
       responses:
@@ -324,7 +485,7 @@ paths:
         name: post_info
         required: true
         schema:
-          $ref: '#/definitions/models.UpdatePostRequest'
+          $ref: '#/definitions/github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.UpdatePostRequest'
       produces:
       - application/json
       responses:
@@ -360,7 +521,7 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/models.UserUpdateRequest'
+          $ref: '#/definitions/github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.UserUpdateRequest'
       produces:
       - application/json
       responses:

@@ -1,4 +1,4 @@
-package service
+package usersservice
 
 import (
 	"github.com/golang-jwt/jwt/v5"
@@ -12,7 +12,7 @@ import (
 var secretKey = []byte("secret-key")
 
 type Repository interface {
-	Register(*models.DbUser) error
+	Register(*models.DbUser) (int, error)
 	Login(*models.GetLoginRequest) error
 	UpdateUserInfo(*models.DbUser, string) error
 	GetUserInfo(string) (*models.DbUser, error)
@@ -29,7 +29,7 @@ func NewUService(repository Repository) *UService {
 	}
 }
 
-func (a *UService) Register(req *models.RegisterRequest) error {
+func (a *UService) Register(req *models.RegisterRequest) (int, error) {
 	userInfo := models.DbUser{
 		Email:     req.Email,
 		Login:     req.Login,
@@ -38,24 +38,24 @@ func (a *UService) Register(req *models.RegisterRequest) error {
 		UpdatedAt: time.Now(),
 	}
 
-	if err := a.repository.Register(&userInfo); err != nil {
-		logger.Logger.Error("db register user info error", "error", err.Error())
-		return err
+	id, err := a.repository.Register(&userInfo)
+	if err != nil {
+		logger.Logger.Error("register user info error", "error", err.Error())
+		return 0, err
 	}
 
-	return nil
+	return id, nil
 }
 
 func (a *UService) Login(req *models.GetLoginRequest) (string, error) {
-	err := a.repository.Login(req)
-	if err != nil {
-		logger.Logger.Error("db login error", "error", err.Error())
+	if err := a.repository.Login(req); err != nil {
+		logger.Logger.Error("login error", "error", err.Error())
 		return "", err
 	}
 
 	userID, err := a.repository.GetUserID(req.Login)
 	if err != nil {
-		logger.Logger.Error("db get user id error", "error", err.Error())
+		logger.Logger.Error("get user id error", "error", err.Error())
 		return "", err
 	}
 
@@ -83,7 +83,7 @@ func (a *UService) UpdateUserInfo(req *models.UserUpdateRequest, login string) e
 	}
 
 	if err := a.repository.UpdateUserInfo(&userInfo, login); err != nil {
-		logger.Logger.Error("db update user info error", "error", err.Error())
+		logger.Logger.Error("update user info error", "error", err.Error())
 		return err
 	}
 
@@ -93,7 +93,7 @@ func (a *UService) UpdateUserInfo(req *models.UserUpdateRequest, login string) e
 func (a *UService) GetUserInfo(login string) (*models.DbUser, error) {
 	userInfo, err := a.repository.GetUserInfo(login)
 	if err != nil {
-		logger.Logger.Error("db get user info error", "error", err.Error())
+		logger.Logger.Error("get user info error", "error", err.Error())
 		return nil, status.Errorf(codes.NotFound, err.Error())
 	}
 

@@ -2,11 +2,9 @@ package postsservice
 
 import (
 	"context"
-	"encoding/json"
 	"github.com/grigorovskiiy/soa-hse/posts_service/internal/infrastructure/logger"
 	"github.com/grigorovskiiy/soa-hse/posts_service/internal/infrastructure/models"
 	pb "github.com/grigorovskiiy/soa-hse/protos"
-	kafkaGo "github.com/segmentio/kafka-go"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"time"
 )

@@ -33,3 +33,8 @@ type GetLoginRequest struct {
 	Login    string `json:"login"`
 	Password string `json:"password"`
 }
+
+type ClientUpdate struct {
+	UserId int       `bun:"user_id" json:"user_id"`
+	Time   time.Time `bun:"time" json:"time"`
+}

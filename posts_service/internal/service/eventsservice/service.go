@@ -1,4 +1,4 @@
-package kafkaservice
+package eventsservice
 
 import (
 	"context"
@@ -9,15 +9,26 @@ import (
 	kafkaGo "github.com/segmentio/kafka-go"
 )
 
-type KService struct {
+type KafkaService struct {
 	producer *kafka.BaseProducer
 }
 
-func NewKService(cfg *config.Config, producer *kafka.BaseProducer) *KService {
-	return nil
+func NewKafkaService(cfg *config.Config, producer *kafka.BaseProducer) (*KafkaService, error) {
+	client := kafkaGo.Client{
+		Addr: kafkaGo.TCP(cfg.Brokers...),
+	}
+
+	topicsReq := CreateTopicsReq(cfg)
+	_, err := client.CreateTopics(context.Background(), &topicsReq)
+	if err != nil {
+		logger.Logger.Error("error creating topics", "error", err.Error())
+		return nil, err
+	}
+
+	return &KafkaService{producer: producer}, nil
 }
 
-func (s *KService) SendUpdate(ctx context.Context, topic string, upd any) error {
+func (s *KafkaService) SendEvent(ctx context.Context, topic string, upd any) error {
 	msg, err := json.Marshal(upd)
 	if err != nil {
 		logger.Logger.Error("upd json marshal error", "error", err.Error())

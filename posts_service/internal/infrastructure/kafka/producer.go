@@ -45,5 +45,3 @@ func (p *BaseProducer) Produce(ctx context.Context, topic string, msg *kafka.Mes
 
 	return err
 }
-
-func InitTopics()

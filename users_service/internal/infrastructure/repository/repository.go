@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"github.com/grigorovskiiy/soa-hse/users_service/internal/errors"
+	"github.com/grigorovskiiy/soa-hse/users_service/internal/infrastructure/logger"
 	"github.com/grigorovskiiy/soa-hse/users_service/internal/infrastructure/models"
 	"github.com/uptrace/bun"
 )
@@ -15,24 +16,28 @@ func NewUsersRepository(db *bun.DB) *UsersRepository {
 	return &UsersRepository{db: db}
 }
 
-func (r *UsersRepository) Register(userInfo *models.DbUser) error {
+func (r *UsersRepository) Register(userInfo *models.DbUser) (int, error) {
 	exists, err := r.db.NewSelect().
 		Model((*models.DbUser)(nil)).
 		Where("login = ?", userInfo.Login).
 		Exists(context.Background())
 	if err != nil {
-		return err
+		logger.Logger.Error("exists check register db error", "error", err.Error())
+		return 0, err
 	}
 	if exists {
-		return errors.AlreadyRegisteredError{}
+		logger.Logger.Error(errors.AlreadyRegisteredError{}.Error())
+		return 0, errors.AlreadyRegisteredError{}
 	}
 
-	_, err = r.db.NewInsert().Model(userInfo).Exec(context.Background())
+	var id int
+	_, err = r.db.NewInsert().Model(userInfo).Returning("id").Exec(context.Background(), &id)
 	if err != nil {
-		return err
+		logger.Logger.Error("insert register db error", "error", err.Error())
+		return 0, err
 	}
 
-	return nil
+	return id, nil
 }
 
 func (r *UsersRepository) Login(userInfo *models.GetLoginRequest) error {
@@ -41,9 +46,12 @@ func (r *UsersRepository) Login(userInfo *models.GetLoginRequest) error {
 		Where("login = ? and password = ?", userInfo.Login, userInfo.Password).
 		Exists(context.Background())
 	if err != nil {
+		logger.Logger.Error("exists check register db error", "error", err.Error())
 		return err
 	}
+
 	if !exists {
+		logger.Logger.Error(errors.LoginError{}.Error())
 		return errors.LoginError{}
 	}
 
@@ -53,6 +61,7 @@ func (r *UsersRepository) Login(userInfo *models.GetLoginRequest) error {
 func (r *UsersRepository) UpdateUserInfo(userInfo *models.DbUser, login string) error {
 	_, err := r.db.NewUpdate().Model(userInfo).Where("login = ?", login).OmitZero().Exec(context.Background())
 	if err != nil {
+		logger.Logger.Error("update user info db error", "error", err.Error())
 		return err
 	}
 
@@ -67,6 +76,7 @@ func (r *UsersRepository) GetUserInfo(userLogin string) (*models.DbUser, error) 
 		Scan(context.Background())
 
 	if err != nil {
+		logger.Logger.Error("get user info db error", "error", err.Error())
 		return nil, err
 	}
 
@@ -81,6 +91,7 @@ func (r *UsersRepository) GetUserID(login string) (int, error) {
 		Scan(context.Background())
 
 	if err != nil {
+		logger.Logger.Error("get user id db error", "error", err.Error())
 		return 0, err
 	}
 

@@ -15,7 +15,6 @@ type DbPost struct {
 	CreatedAt     time.Time `bun:"created_at" json:"created_at"`
 	UpdatedAt     time.Time `bun:"updated_at" json:"updated_at"`
 	Tags          []string  `bun:"tags" json:"tags"`
-	Views         int       `bun:"views" json:"views"`
 }
 
 type DbComment struct {

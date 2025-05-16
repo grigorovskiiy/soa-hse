@@ -69,6 +69,6 @@ type GetCommentResponse struct {
 	Description string `json:"description"`
 }
 
-type GetListCommentResponse struct {
+type GetCommentListResponse struct {
 	Comments []*GetCommentResponse `json:"comments"`
 }

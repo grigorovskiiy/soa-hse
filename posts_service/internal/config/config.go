@@ -11,7 +11,7 @@ type Config struct {
 }
 
 type KafkaConfig struct {
-	Brokers       []string `env:"KAFKA_BROKERS" envSeparator:"," envDefault:"kafka:9092"`
+	Brokers       []string `env:"KAFKA_BROKERS" envSeparator:"," envDefault:"kafka:19092"`
 	CommentsTopic string   `env:"KAFKA_COMMENTS_TOPIC" envDefault:"comments.topic"`
 	LikesTopic    string   `env:"KAFKA_LIKES_TOPIC" envDefault:"likes.topic"`
 	ViewsTopic    string   `env:"KAFKA_VIEWS_TOPIC" envDefault:"views.topic"`
