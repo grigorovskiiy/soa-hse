@@ -1,4 +1,9 @@
 definitions:
+  github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.CountResponse:
+    properties:
+      count:
+        type: integer
+    type: object
   github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.CreatePostRequest:
     properties:
       post_description:
@@ -12,6 +17,20 @@ definitions:
           type: string
         type: array
     type: object
+  github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.DynamicListResponse:
+    properties:
+      dynamic:
+        items:
+          $ref: '#/definitions/github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.DynamicResponse'
+        type: array
+    type: object
+  github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.DynamicResponse:
+    properties:
+      count:
+        type: integer
+      date:
+        type: string
+    type: object
   github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.GetCommentListResponse:
     properties:
       comments:
@@ -21,13 +40,13 @@ definitions:
     type: object
   github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.GetCommentResponse:
     properties:
-      comment_ID:
+      comment_id:
         type: integer
       description:
         type: string
-      post_ID:
+      post_id:
         type: integer
-      user_ID:
+      user_id:
         type: integer
     type: object
   github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.GetLoginRequest:
@@ -48,10 +67,10 @@ definitions:
     properties:
       created_at:
         type: string
-      post_ID:
-        type: integer
       post_description:
         type: string
+      post_id:
+        type: integer
       post_name:
         type: string
       security_flag:
@@ -62,19 +81,19 @@ definitions:
         type: array
       updated_at:
         type: string
-      user_ID:
+      user_id:
         type: integer
     type: object
   github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.PostCommentRequest:
     properties:
       description:
         type: string
-      post_ID:
+      post_id:
         type: integer
     type: object
   github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.PostID:
     properties:
-      post_ID:
+      post_id:
         type: integer
     type: object
   github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.RegisterRequest:
@@ -86,12 +105,19 @@ definitions:
       password:
         type: string
     type: object
+  github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.TopTenResponse:
+    properties:
+      top:
+        items:
+          type: integer
+        type: array
+    type: object
   github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.UpdatePostRequest:
     properties:
-      post_ID:
-        type: integer
       post_description:
         type: string
+      post_id:
+        type: integer
       post_name:
         type: string
       security_flag:
@@ -226,6 +252,130 @@ paths:
       summary: Получить пагинированный список комментариев
       tags:
       - Post
+  /get_comments_count:
+    get:
+      description: Получить количество комментариев по посту
+      parameters:
+      - description: ID поста
+        in: query
+        name: post_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.CountResponse'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Получить количество комментариев по посту
+      tags:
+      - Statistic
+  /get_comments_dynamic:
+    get:
+      description: Получить динамику комментариев по посту
+      parameters:
+      - description: ID поста
+        in: query
+        name: post_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.DynamicListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Получить динамику комментариев по посту
+      tags:
+      - Statistic
+  /get_likes_count:
+    get:
+      description: Получить количество лайков по посту
+      parameters:
+      - description: ID поста
+        in: query
+        name: post_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.CountResponse'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Получить количество лайков по посту
+      tags:
+      - Statistic
+  /get_likes_dynamic:
+    get:
+      description: Получить динамику лайков по посту
+      parameters:
+      - description: ID поста
+        in: query
+        name: post_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.DynamicListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Получить динамику лайков по посту
+      tags:
+      - Statistic
   /get_post:
     get:
       description: Получить пост
@@ -297,6 +447,68 @@ paths:
       summary: Получить пагинированный список постов
       tags:
       - Post
+  /get_top_ten_posts:
+    get:
+      description: Получить топ 10 постов по параметру
+      parameters:
+      - description: Параметер топа
+        in: query
+        name: top_parameter
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.TopTenResponse'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Получить топ 10 постов по параметру
+      tags:
+      - Statistic
+  /get_top_ten_users:
+    get:
+      description: Получить топ 10 пользователей по параметру
+      parameters:
+      - description: Параметер топа
+        in: query
+        name: top_parameter
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.TopTenResponse'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Получить топ 10 пользователей по параметру
+      tags:
+      - Statistic
   /get_user_info:
     get:
       consumes:
@@ -324,6 +536,68 @@ paths:
       summary: Получить пользователя
       tags:
       - User
+  /get_views_count:
+    get:
+      description: Получить количество просмотров по посту
+      parameters:
+      - description: ID поста
+        in: query
+        name: post_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.CountResponse'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Получить количество просмотров по посту
+      tags:
+      - Statistic
+  /get_views_dynamic:
+    get:
+      description: Получить динамику просмотров по посту
+      parameters:
+      - description: ID поста
+        in: query
+        name: post_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.DynamicListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Получить динамику просмотров по посту
+      tags:
+      - Statistic
   /login:
     post:
       consumes:

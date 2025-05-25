@@ -4,6 +4,7 @@ option go_package = "./;protos";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
 
+package posts_service;
 
 message PostID {
   int32 post_id = 1;

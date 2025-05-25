@@ -4,36 +4,36 @@ import (
 	"context"
 	"errors"
 	"github.com/grigorovskiiy/soa-hse/api_gateway_service/internal/application"
+	"github.com/grigorovskiiy/soa-hse/api_gateway_service/internal/config"
 	"github.com/grigorovskiiy/soa-hse/api_gateway_service/internal/middleware"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 	"go.uber.org/fx"
 	"net/http"
-	"os"
 )
 
-func NewServer(a *application.GatewayApp) *http.Server {
+func NewServer(a *application.GatewayApp, cfg *config.Config) *http.Server {
 	mux := http.NewServeMux()
 
 	mux.Handle("/register",
-		middleware.ProxyMiddleware("users-service")(
+		middleware.ProxyMiddleware(cfg.UsersServiceHost, cfg.UsersServicePort)(
 			middleware.LoggerMiddleware(
 				middleware.MethodMiddleware(http.MethodPost, http.HandlerFunc(a.Register)),
 			)))
 
 	mux.Handle("/login",
-		middleware.ProxyMiddleware("users-service")(
+		middleware.ProxyMiddleware(cfg.UsersServiceHost, cfg.UsersServicePort)(
 			middleware.LoggerMiddleware(
 				middleware.MethodMiddleware(http.MethodPost, http.HandlerFunc(a.Register)),
 			)))
 
 	mux.Handle("/get_user_info",
-		middleware.ProxyMiddleware("users-service")(
+		middleware.ProxyMiddleware(cfg.UsersServiceHost, cfg.UsersServicePort)(
 			middleware.LoggerMiddleware(
 				middleware.MethodMiddleware(http.MethodPost, http.HandlerFunc(a.GetUserInfo)),
 			)))
 
 	mux.Handle("/update_user_info",
-		middleware.ProxyMiddleware("users-service")(
+		middleware.ProxyMiddleware(cfg.UsersServiceHost, cfg.UsersServicePort)(
 			middleware.LoggerMiddleware(
 				middleware.MethodMiddleware(http.MethodPost, http.HandlerFunc(a.UpdateUserInfo)),
 			)))
@@ -84,10 +84,42 @@ func NewServer(a *application.GatewayApp) *http.Server {
 			middleware.MethodMiddleware(http.MethodGet,
 				middleware.AuthMiddleware(http.HandlerFunc(a.GetCommentList)))))
 
+	mux.Handle("/get_comments_count",
+		middleware.LoggerMiddleware(
+			middleware.MethodMiddleware(http.MethodGet, http.HandlerFunc(a.GetCommentsCount))))
+
+	mux.Handle("/get_likes_count",
+		middleware.LoggerMiddleware(
+			middleware.MethodMiddleware(http.MethodGet, http.HandlerFunc(a.GetLikesCount))))
+
+	mux.Handle("/get_views_count",
+		middleware.LoggerMiddleware(
+			middleware.MethodMiddleware(http.MethodGet, http.HandlerFunc(a.GetViewsCount))))
+
+	mux.Handle("/get_comments_dynamic",
+		middleware.LoggerMiddleware(
+			middleware.MethodMiddleware(http.MethodGet, http.HandlerFunc(a.GetCommentsDynamic))))
+
+	mux.Handle("/get_likes_dynamic",
+		middleware.LoggerMiddleware(
+			middleware.MethodMiddleware(http.MethodGet, http.HandlerFunc(a.GetLikesDynamic))))
+
+	mux.Handle("/get_views_dynamic",
+		middleware.LoggerMiddleware(
+			middleware.MethodMiddleware(http.MethodGet, http.HandlerFunc(a.GetViewsDynamic))))
+
+	mux.Handle("/get_top_ten_posts",
+		middleware.LoggerMiddleware(
+			middleware.MethodMiddleware(http.MethodGet, http.HandlerFunc(a.GetTopTenPosts))))
+
+	mux.Handle("/get_top_ten_users",
+		middleware.LoggerMiddleware(
+			middleware.MethodMiddleware(http.MethodGet, http.HandlerFunc(a.GetTopTenUsers))))
+
 	mux.Handle("/swagger/", httpSwagger.Handler(httpSwagger.URL("swagger/swagger/doc.json")))
 
 	return &http.Server{
-		Addr:    os.Getenv("API_GATEWAY_PORT"),
+		Addr:    cfg.GatewayServicePort,
 		Handler: mux,
 	}
 

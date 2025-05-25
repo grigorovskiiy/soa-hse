@@ -31,11 +31,11 @@ type CreatePostRequest struct {
 }
 
 type PostID struct {
-	PostID int `json:"post_ID"`
+	PostID int `json:"post_id"`
 }
 
 type UpdatePostRequest struct {
-	PostID          int      `json:"post_ID"`
+	PostID          int      `json:"post_id"`
 	PostName        string   `json:"post_name"`
 	PostDescription string   `json:"post_description"`
 	Tags            []string `json:"tags"`
@@ -43,14 +43,14 @@ type UpdatePostRequest struct {
 }
 
 type GetPostResponse struct {
-	PostID          int       `json:"post_ID"`
+	PostID          int       `json:"post_id"`
 	PostName        string    `json:"post_name"`
 	PostDescription string    `json:"post_description"`
 	SecurityFlag    bool      `json:"security_flag"`
 	CreatedAt       time.Time `json:"created_at"`
 	UpdatedAt       time.Time `json:"updated_at"`
 	Tags            []string  `json:"tags"`
-	UserID          int       `json:"user_ID"`
+	UserID          int       `json:"user_id"`
 }
 
 type GetPostListResponse struct {
@@ -58,17 +58,38 @@ type GetPostListResponse struct {
 }
 
 type PostCommentRequest struct {
-	PostID      int    `json:"post_ID"`
+	PostID      int    `json:"post_id"`
 	Description string `json:"description"`
 }
 
 type GetCommentResponse struct {
-	CommentID   int    `json:"comment_ID"`
-	UserID      int    `json:"user_ID"`
-	PostID      int    `json:"post_ID"`
+	CommentID   int    `json:"comment_id"`
+	UserID      int    `json:"user_id"`
+	PostID      int    `json:"post_id"`
 	Description string `json:"description"`
 }
 
 type GetCommentListResponse struct {
 	Comments []*GetCommentResponse `json:"comments"`
+}
+
+type DynamicListResponse struct {
+	Dynamic []*DynamicResponse `json:"dynamic"`
+}
+
+type DynamicResponse struct {
+	Count int       `json:"count"`
+	Date  time.Time `json:"date"`
+}
+
+type TopParameter struct {
+	Parameter string `json:"parameter"`
+}
+
+type TopTenResponse struct {
+	Top []int `json:"top"`
+}
+
+type CountResponse struct {
+	Count int32 `json:"count"`
 }

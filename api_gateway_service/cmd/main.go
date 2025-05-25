@@ -3,6 +3,7 @@ package main
 import (
 	_ "github.com/grigorovskiiy/soa-hse/api_gateway_service/docs"
 	"github.com/grigorovskiiy/soa-hse/api_gateway_service/internal/application"
+	"github.com/grigorovskiiy/soa-hse/api_gateway_service/internal/config"
 	"github.com/grigorovskiiy/soa-hse/api_gateway_service/internal/infrastructure/clients"
 	"github.com/grigorovskiiy/soa-hse/api_gateway_service/internal/infrastructure/logger"
 	"github.com/grigorovskiiy/soa-hse/api_gateway_service/internal/server"
@@ -26,10 +27,15 @@ func init() {
 // @BasePath /
 func main() {
 	addOpts := fx.Options(
-		fx.Provide(clients.NewGRPCClients),
-		fx.Provide(application.NewGatewayApp),
-		fx.Provide(server.NewServer),
-		fx.Invoke(server.RunServer),
+		fx.Provide(
+			config.NewConfig,
+			clients.NewGRPCClients,
+			application.NewGatewayApp,
+			server.NewServer,
+		),
+		fx.Invoke(
+			server.RunServer,
+		),
 	)
 
 	fx.New(addOpts).Run()

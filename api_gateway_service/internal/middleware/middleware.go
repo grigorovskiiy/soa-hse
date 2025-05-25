@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
-	"os"
 	"strconv"
 )
 
@@ -73,8 +72,8 @@ func MethodMiddleware(method string, next http.Handler) http.Handler {
 	})
 }
 
-func ProxyMiddleware(target string) func(http.Handler) http.Handler {
-	targetURL := fmt.Sprintf("%s%s", target, os.Getenv("USERS_SERVICE_PORT"))
+func ProxyMiddleware(targetHost, targetPort string) func(http.Handler) http.Handler {
+	targetURL := fmt.Sprintf("%s%s", targetHost, targetPort)
 	proxy := httputil.NewSingleHostReverseProxy(&url.URL{
 		Scheme: "http",
 		Host:   targetURL,

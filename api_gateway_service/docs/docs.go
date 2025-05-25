@@ -182,6 +182,194 @@ const docTemplate = `{
                 }
             }
         },
+        "/get_comments_count": {
+            "get": {
+                "description": "Получить количество комментариев по посту",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Statistic"
+                ],
+                "summary": "Получить количество комментариев по посту",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID поста",
+                        "name": "post_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.CountResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/get_comments_dynamic": {
+            "get": {
+                "description": "Получить динамику комментариев по посту",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Statistic"
+                ],
+                "summary": "Получить динамику комментариев по посту",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID поста",
+                        "name": "post_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.DynamicListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/get_likes_count": {
+            "get": {
+                "description": "Получить количество лайков по посту",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Statistic"
+                ],
+                "summary": "Получить количество лайков по посту",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID поста",
+                        "name": "post_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.CountResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/get_likes_dynamic": {
+            "get": {
+                "description": "Получить динамику лайков по посту",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Statistic"
+                ],
+                "summary": "Получить динамику лайков по посту",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID поста",
+                        "name": "post_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.DynamicListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/get_post": {
             "get": {
                 "security": [
@@ -293,6 +481,100 @@ const docTemplate = `{
                 }
             }
         },
+        "/get_top_ten_posts": {
+            "get": {
+                "description": "Получить топ 10 постов по параметру",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Statistic"
+                ],
+                "summary": "Получить топ 10 постов по параметру",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Параметер топа",
+                        "name": "top_parameter",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.TopTenResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/get_top_ten_users": {
+            "get": {
+                "description": "Получить топ 10 пользователей по параметру",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Statistic"
+                ],
+                "summary": "Получить топ 10 пользователей по параметру",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Параметер топа",
+                        "name": "top_parameter",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.TopTenResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/get_user_info": {
             "get": {
                 "security": [
@@ -332,6 +614,100 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/get_views_count": {
+            "get": {
+                "description": "Получить количество просмотров по посту",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Statistic"
+                ],
+                "summary": "Получить количество просмотров по посту",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID поста",
+                        "name": "post_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.CountResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/get_views_dynamic": {
+            "get": {
+                "description": "Получить динамику просмотров по посту",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Statistic"
+                ],
+                "summary": "Получить динамику просмотров по посту",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID поста",
+                        "name": "post_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.DynamicListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
                     }
                 }
             }
@@ -682,6 +1058,14 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.CountResponse": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                }
+            }
+        },
         "github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.CreatePostRequest": {
             "type": "object",
             "properties": {
@@ -702,6 +1086,28 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.DynamicListResponse": {
+            "type": "object",
+            "properties": {
+                "dynamic": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.DynamicResponse"
+                    }
+                }
+            }
+        },
+        "github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.DynamicResponse": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "date": {
+                    "type": "string"
+                }
+            }
+        },
         "github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.GetCommentListResponse": {
             "type": "object",
             "properties": {
@@ -716,16 +1122,16 @@ const docTemplate = `{
         "github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.GetCommentResponse": {
             "type": "object",
             "properties": {
-                "comment_ID": {
+                "comment_id": {
                     "type": "integer"
                 },
                 "description": {
                     "type": "string"
                 },
-                "post_ID": {
+                "post_id": {
                     "type": "integer"
                 },
-                "user_ID": {
+                "user_id": {
                     "type": "integer"
                 }
             }
@@ -758,11 +1164,11 @@ const docTemplate = `{
                 "created_at": {
                     "type": "string"
                 },
-                "post_ID": {
-                    "type": "integer"
-                },
                 "post_description": {
                     "type": "string"
+                },
+                "post_id": {
+                    "type": "integer"
                 },
                 "post_name": {
                     "type": "string"
@@ -779,7 +1185,7 @@ const docTemplate = `{
                 "updated_at": {
                     "type": "string"
                 },
-                "user_ID": {
+                "user_id": {
                     "type": "integer"
                 }
             }
@@ -790,7 +1196,7 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
-                "post_ID": {
+                "post_id": {
                     "type": "integer"
                 }
             }
@@ -798,7 +1204,7 @@ const docTemplate = `{
         "github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.PostID": {
             "type": "object",
             "properties": {
-                "post_ID": {
+                "post_id": {
                     "type": "integer"
                 }
             }
@@ -817,14 +1223,25 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.TopTenResponse": {
+            "type": "object",
+            "properties": {
+                "top": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
         "github_com_grigorovskiiy_soa-hse_api_gateway_service_internal_infrastructure_models.UpdatePostRequest": {
             "type": "object",
             "properties": {
-                "post_ID": {
-                    "type": "integer"
-                },
                 "post_description": {
                     "type": "string"
+                },
+                "post_id": {
+                    "type": "integer"
                 },
                 "post_name": {
                     "type": "string"

@@ -4,7 +4,7 @@ import (
 	pb "github.com/grigorovskiiy/soa-hse/protos"
 )
 
-func (m *CreatePostRequest) ToProto() *pb.PostDataRequest {
+func (m *CreatePostRequest) ToPostsProto() *pb.PostDataRequest {
 	return &pb.PostDataRequest{
 		PostName:        m.PostName,
 		PostDescription: m.PostDescription,
@@ -13,13 +13,13 @@ func (m *CreatePostRequest) ToProto() *pb.PostDataRequest {
 	}
 }
 
-func (m *PostID) ToProto() *pb.PostID {
+func (m *PostID) ToPostsProto() *pb.PostID {
 	return &pb.PostID{
 		PostId: int32(m.PostID),
 	}
 }
 
-func (m *UpdatePostRequest) ToProto() *pb.UpdatePostRequest {
+func (m *UpdatePostRequest) ToPostsProto() *pb.UpdatePostRequest {
 	return &pb.UpdatePostRequest{
 		PostId: int32(m.PostID),
 		PostData: &pb.PostDataRequest{
@@ -55,7 +55,7 @@ func FromProtoListPostResponse(pb *pb.ListPostsResponse) *GetPostListResponse {
 	}
 }
 
-func (m *PostCommentRequest) ToProto() *pb.PostCommentRequest {
+func (m *PostCommentRequest) ToPostsProto() *pb.PostCommentRequest {
 	return &pb.PostCommentRequest{
 		PostId:             int32(m.PostID),
 		CommentDescription: m.Description,
@@ -79,5 +79,61 @@ func FromProtoListCommentResponse(pb *pb.ListCommentsResponse) *GetCommentListRe
 
 	return &GetCommentListResponse{
 		Comments: comments,
+	}
+}
+
+func (m *PostID) ToStatisticProto() *pb.PostID {
+	return &pb.PostID{
+		PostId: int32(m.PostID),
+	}
+}
+
+func FromProtoDynamuicListResponse(pb *pb.DynamicListResponse) *DynamicListResponse {
+	dynamic := make([]*DynamicResponse, len(pb.Dynamic))
+	for i, d := range pb.Dynamic {
+		dynamic[i] = &DynamicResponse{
+			Count: int(d.Count.Count),
+			Date:  d.Data.AsTime().Local(),
+		}
+	}
+
+	return &DynamicListResponse{
+		Dynamic: dynamic,
+	}
+}
+
+func (m *TopParameter) ToStatisticProto() *pb.TopTenParameter {
+	return &pb.TopTenParameter{
+		Par: m.Parameter,
+	}
+}
+
+func FromProtoTopTenPostsResponse(pb *pb.TopTenPostsResponse) *TopTenResponse {
+	top := make([]int, len(pb.Posts))
+	for i, p := range pb.Posts {
+		top[i] = int(p.PostId)
+	}
+
+	return &TopTenResponse{
+		Top: top,
+	}
+
+}
+
+func FromProtoTopTenUsersResponse(pb *pb.TopTenUsersResponse) *TopTenResponse {
+	top := make([]int, len(pb.Users))
+	for i, p := range pb.Users {
+		top[i] = int(p.UserId)
+	}
+
+	return &TopTenResponse{
+		Top: top,
+	}
+
+}
+
+func FromProtoCountResponse(pb *pb.CountResponse) *CountResponse {
+	return &CountResponse{
+		Count: int32(pb.Count),
 	}
 }

@@ -230,7 +230,7 @@ func (a *GatewayApp) CreatePost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := metadata.AppendToOutgoingContext(context.Background(), "user_id", userID)
-	_, err = a.GRPCClients.PostsServiceClient.CreatePost(ctx, req.ToProto())
+	_, err = a.GRPCClients.PostsServiceClient.CreatePost(ctx, req.ToPostsProto())
 	if err != nil {
 		logger.Error("grpc request CreatePost error", "error", status.Convert(err))
 		writeRes(w, http.StatusInternalServerError, status.Convert(err))
@@ -277,7 +277,7 @@ func (a *GatewayApp) DeletePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ctx := metadata.AppendToOutgoingContext(context.Background(), "user_id", userID)
-	_, err = a.GRPCClients.PostsServiceClient.DeletePost(ctx, req.ToProto())
+	_, err = a.GRPCClients.PostsServiceClient.DeletePost(ctx, req.ToPostsProto())
 	if err != nil {
 		logger.Error("grpc request DeletePost error", "error", status.Convert(err).Message())
 		writeRes(w, http.StatusInternalServerError, status.Convert(err).Message())
@@ -324,9 +324,9 @@ func (a *GatewayApp) UpdatePost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := metadata.AppendToOutgoingContext(context.Background(), "user_id", userID)
-	_, err = a.GRPCClients.PostsServiceClient.UpdatePost(ctx, req.ToProto())
+	_, err = a.GRPCClients.PostsServiceClient.UpdatePost(ctx, req.ToPostsProto())
 	if err != nil {
-		logger.Error("error api grpc request UpdatePost", status.Convert(err).Message())
+		logger.Error("error grpc request UpdatePost", status.Convert(err).Message())
 		writeRes(w, http.StatusInternalServerError, status.Convert(err).Message())
 		return
 	}
@@ -372,9 +372,9 @@ func (a *GatewayApp) PostComment(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := metadata.AppendToOutgoingContext(context.Background(), "user_id", userID)
-	_, err = a.GRPCClients.PostsServiceClient.PostComment(ctx, req.ToProto())
+	_, err = a.GRPCClients.PostsServiceClient.PostComment(ctx, req.ToPostsProto())
 	if err != nil {
-		logger.Error("error api grpc request PostComment", status.Convert(err).Message())
+		logger.Error("error  grpc request PostComment", status.Convert(err).Message())
 		writeRes(w, http.StatusInternalServerError, status.Convert(err).Message())
 		return
 	}
@@ -419,9 +419,9 @@ func (a *GatewayApp) PostLike(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := metadata.AppendToOutgoingContext(context.Background(), "user_id", userID)
-	_, err = a.GRPCClients.PostsServiceClient.PostLike(ctx, req.ToProto())
+	_, err = a.GRPCClients.PostsServiceClient.PostLike(ctx, req.ToPostsProto())
 	if err != nil {
-		logger.Error("error api grpc request PostLike", status.Convert(err).Message())
+		logger.Error("error grpc request PostLike", status.Convert(err).Message())
 		writeRes(w, http.StatusInternalServerError, status.Convert(err).Message())
 		return
 	}
@@ -467,9 +467,9 @@ func (a *GatewayApp) PostView(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := metadata.AppendToOutgoingContext(context.Background(), "user_id", userID)
-	_, err = a.GRPCClients.PostsServiceClient.PostView(ctx, req.ToProto())
+	_, err = a.GRPCClients.PostsServiceClient.PostView(ctx, req.ToPostsProto())
 	if err != nil {
-		logger.Error("error api grpc request PostView", status.Convert(err).Message())
+		logger.Error("error grpc request PostView", status.Convert(err).Message())
 		writeRes(w, http.StatusInternalServerError, status.Convert(err).Message())
 		return
 	}
@@ -522,10 +522,278 @@ func (a *GatewayApp) GetCommentList(w http.ResponseWriter, r *http.Request) {
 	ctx := metadata.AppendToOutgoingContext(context.Background(), "user_id", userID)
 	res, err := a.GRPCClients.PostsServiceClient.GetCommentList(ctx, &pb.PaginatedListRequest{Page: int32(page), PageSize: int32(pageSize)})
 	if err != nil {
-		logger.Error("error api grpc request GetCommentList", status.Convert(err).Message())
+		logger.Error("error grpc request GetCommentList", status.Convert(err).Message())
 		writeRes(w, http.StatusInternalServerError, status.Convert(err).Message())
 		return
 	}
 
 	writeRes(w, http.StatusOK, models.FromProtoListCommentResponse(res))
+}
+
+// GetViewsCount godoc
+// @Summary      Получить количество просмотров по посту
+// @Description  Получить количество просмотров по посту
+// @Tags         Statistic
+// @Produce      json
+// @Param 		 post_id query int true "ID поста"
+// @Success      200  {object} models.CountResponse
+// @Failure 	 400 {string} string
+// @Failure 	 401  {string} string
+// @Failure 	 500 {string} string
+// @Router       /get_views_count [get]
+func (a *GatewayApp) GetViewsCount(w http.ResponseWriter, r *http.Request) {
+	logger := logger.Logger.With("path", r.URL.Path, "method", r.Method)
+
+	query := r.URL.Query()
+	postIdStr := query.Get("post_id")
+
+	postId, err := strconv.Atoi(postIdStr)
+	if err != nil {
+		logger.Error("postId is empty")
+		writeRes(w, http.StatusBadRequest, "postId is empty")
+	}
+
+	req := models.PostID{PostID: postId}
+
+	res, err := a.GRPCClients.StatisticServiceClient.GetViewsCount(r.Context(), req.ToStatisticProto())
+	if err != nil {
+		logger.Error("error grpc request GetViewsCount", status.Convert(err).Message())
+		writeRes(w, http.StatusInternalServerError, status.Convert(err).Message())
+		return
+	}
+
+	writeRes(w, http.StatusOK, models.FromProtoCountResponse(res))
+}
+
+// GetLikesCount godoc
+// @Summary      Получить количество лайков по посту
+// @Description  Получить количество лайков по посту
+// @Tags         Statistic
+// @Produce      json
+// @Param 		 post_id query int true "ID поста"
+// @Success      200  {object} models.CountResponse
+// @Failure 	 400 {string} string
+// @Failure 	 401  {string} string
+// @Failure 	 500 {string} string
+// @Router       /get_likes_count [get]
+func (a *GatewayApp) GetLikesCount(w http.ResponseWriter, r *http.Request) {
+	logger := logger.Logger.With("path", r.URL.Path, "method", r.Method)
+
+	query := r.URL.Query()
+	postIdStr := query.Get("post_id")
+
+	postId, err := strconv.Atoi(postIdStr)
+	if err != nil {
+		logger.Error("postId is empty")
+		writeRes(w, http.StatusBadRequest, "postId is empty")
+	}
+
+	req := models.PostID{PostID: postId}
+
+	res, err := a.GRPCClients.StatisticServiceClient.GetLikesCount(r.Context(), req.ToStatisticProto())
+	if err != nil {
+		logger.Error("error grpc request GetLikesCount", status.Convert(err).Message())
+		writeRes(w, http.StatusInternalServerError, status.Convert(err).Message())
+		return
+	}
+
+	writeRes(w, http.StatusOK, models.FromProtoCountResponse(res))
+}
+
+// GetCommentsCount godoc
+// @Summary      Получить количество комментариев по посту
+// @Description  Получить количество комментариев по посту
+// @Tags         Statistic
+// @Produce      json
+// @Param 		 post_id query int true "ID поста"
+// @Success      200  {object} models.CountResponse
+// @Failure 	 400 {string} string
+// @Failure 	 401  {string} string
+// @Failure 	 500 {string} string
+// @Router       /get_comments_count [get]
+func (a *GatewayApp) GetCommentsCount(w http.ResponseWriter, r *http.Request) {
+	logger := logger.Logger.With("path", r.URL.Path, "method", r.Method)
+
+	query := r.URL.Query()
+	postIdStr := query.Get("post_id")
+
+	postId, err := strconv.Atoi(postIdStr)
+	if err != nil {
+		logger.Error("postId is empty")
+		writeRes(w, http.StatusBadRequest, "postId is empty")
+	}
+
+	req := models.PostID{PostID: postId}
+
+	res, err := a.GRPCClients.StatisticServiceClient.GetCommentsCount(r.Context(), req.ToStatisticProto())
+	if err != nil {
+		logger.Error("error grpc request GetCommentsCount", status.Convert(err).Message())
+		writeRes(w, http.StatusInternalServerError, status.Convert(err).Message())
+		return
+	}
+
+	writeRes(w, http.StatusOK, models.FromProtoCountResponse(res))
+}
+
+// GetCommentsDynamic godoc
+// @Summary      Получить динамику комментариев по посту
+// @Description  Получить динамику комментариев по посту
+// @Tags         Statistic
+// @Produce      json
+// @Param 		 post_id query int true "ID поста"
+// @Success      200  {object} models.DynamicListResponse
+// @Failure 	 400 {string} string
+// @Failure 	 401  {string} string
+// @Failure 	 500 {string} string
+// @Router       /get_comments_dynamic [get]
+func (a *GatewayApp) GetCommentsDynamic(w http.ResponseWriter, r *http.Request) {
+	logger := logger.Logger.With("path", r.URL.Path, "method", r.Method)
+
+	query := r.URL.Query()
+	postIdStr := query.Get("post_id")
+
+	postId, err := strconv.Atoi(postIdStr)
+	if err != nil {
+		logger.Error("postId is empty")
+		writeRes(w, http.StatusBadRequest, "postId is empty")
+	}
+
+	req := models.PostID{PostID: postId}
+
+	res, err := a.GRPCClients.StatisticServiceClient.GetCommentsDynamic(r.Context(), req.ToStatisticProto())
+	if err != nil {
+		logger.Error("error grpc request GetCommentsDynamic", status.Convert(err).Message())
+		writeRes(w, http.StatusInternalServerError, status.Convert(err).Message())
+		return
+	}
+
+	writeRes(w, http.StatusOK, models.FromProtoDynamuicListResponse(res))
+}
+
+// GetLikesDynamic godoc
+// @Summary      Получить динамику лайков по посту
+// @Description  Получить динамику лайков по посту
+// @Tags         Statistic
+// @Produce      json
+// @Param 		 post_id query int true "ID поста"
+// @Success      200  {object} models.DynamicListResponse
+// @Failure 	 400 {string} string
+// @Failure 	 401  {string} string
+// @Failure 	 500 {string} string
+// @Router       /get_likes_dynamic [get]
+func (a *GatewayApp) GetLikesDynamic(w http.ResponseWriter, r *http.Request) {
+	logger := logger.Logger.With("path", r.URL.Path, "method", r.Method)
+
+	query := r.URL.Query()
+	postIdStr := query.Get("post_id")
+
+	postId, err := strconv.Atoi(postIdStr)
+	if err != nil {
+		logger.Error("postId is empty")
+		writeRes(w, http.StatusBadRequest, "postId is empty")
+	}
+
+	req := models.PostID{PostID: postId}
+
+	res, err := a.GRPCClients.StatisticServiceClient.GetLikesDynamic(r.Context(), req.ToStatisticProto())
+	if err != nil {
+		logger.Error("error grpc request GetLikesDynamic", status.Convert(err).Message())
+		writeRes(w, http.StatusInternalServerError, status.Convert(err).Message())
+		return
+	}
+
+	writeRes(w, http.StatusOK, models.FromProtoDynamuicListResponse(res))
+}
+
+// GetViewsDynamic godoc
+// @Summary      Получить динамику просмотров по посту
+// @Description  Получить динамику просмотров по посту
+// @Tags         Statistic
+// @Produce      json
+// @Param 		 post_id query int true "ID поста"
+// @Success      200  {object} models.DynamicListResponse
+// @Failure 	 400 {string} string
+// @Failure 	 401  {string} string
+// @Failure 	 500 {string} string
+// @Router       /get_views_dynamic [get]
+func (a *GatewayApp) GetViewsDynamic(w http.ResponseWriter, r *http.Request) {
+	logger := logger.Logger.With("path", r.URL.Path, "method", r.Method)
+
+	query := r.URL.Query()
+	postIdStr := query.Get("post_id")
+
+	postId, err := strconv.Atoi(postIdStr)
+	if err != nil {
+		logger.Error("postId is empty")
+		writeRes(w, http.StatusBadRequest, "postId is empty")
+	}
+
+	req := models.PostID{PostID: postId}
+
+	res, err := a.GRPCClients.StatisticServiceClient.GetViewsDynamic(r.Context(), req.ToStatisticProto())
+	if err != nil {
+		logger.Error("error grpc request GetViewsDynamic", status.Convert(err).Message())
+		writeRes(w, http.StatusInternalServerError, status.Convert(err).Message())
+		return
+	}
+
+	writeRes(w, http.StatusOK, models.FromProtoDynamuicListResponse(res))
+}
+
+// GetTopTenPosts godoc
+// @Summary      Получить топ 10 постов по параметру
+// @Description  Получить топ 10 постов по параметру
+// @Tags         Statistic
+// @Produce      json
+// @Param 		 top_parameter query string true "Параметер топа"
+// @Success      200  {object} models.TopTenResponse
+// @Failure 	 400 {string} string
+// @Failure 	 401  {string} string
+// @Failure 	 500 {string} string
+// @Router       /get_top_ten_posts [get]
+func (a *GatewayApp) GetTopTenPosts(w http.ResponseWriter, r *http.Request) {
+	logger := logger.Logger.With("path", r.URL.Path, "method", r.Method)
+
+	query := r.URL.Query()
+	par := query.Get("top_parameter")
+
+	req := models.TopParameter{Parameter: par}
+
+	res, err := a.GRPCClients.StatisticServiceClient.GetTopTenPosts(r.Context(), req.ToStatisticProto())
+	if err != nil {
+		logger.Error("error grpc request GetTopTenPosts", status.Convert(err).Message())
+		writeRes(w, http.StatusInternalServerError, status.Convert(err).Message())
+		return
+	}
+
+	writeRes(w, http.StatusOK, models.FromProtoTopTenPostsResponse(res))
+}
+
+// GetTopTenUsers godoc
+// @Summary      Получить топ 10 пользователей по параметру
+// @Description  Получить топ 10 пользователей по параметру
+// @Tags         Statistic
+// @Produce      json
+// @Param 		 top_parameter query string true "Параметер топа"
+// @Success      200  {object} models.TopTenResponse
+// @Failure 	 400 {string} string
+// @Failure 	 401  {string} string
+// @Failure 	 500 {string} string
+// @Router       /get_top_ten_users [get]
+func (a *GatewayApp) GetTopTenUsers(w http.ResponseWriter, r *http.Request) {
+	logger := logger.Logger.With("path", r.URL.Path, "method", r.Method)
+
+	query := r.URL.Query()
+	par := query.Get("top_parameter")
+
+	req := models.TopParameter{Parameter: par}
+
+	res, err := a.GRPCClients.StatisticServiceClient.GetTopTenUsers(r.Context(), req.ToStatisticProto())
+	if err != nil {
+		logger.Error("error grpc request GetTopTenUsers", status.Convert(err).Message())
+		writeRes(w, http.StatusInternalServerError, status.Convert(err).Message())
+		return
+	}
+
+	writeRes(w, http.StatusOK, models.FromProtoTopTenUsersResponse(res))
 }
