@@ -7,6 +7,8 @@ networks:
 volumes:
   users_postgres_data:
   posts_postgres_data:
+  clickhouse_data:
+  clickhouse_log:
 
 services:
   users-postgres:
@@ -85,6 +87,19 @@ services:
       kafka:
         condition: service_healthy
 
+  statistic-service:
+    build:
+      context: .
+      dockerfile: statistic_service/Dockerfile
+    ports:
+      - "50052:50052"
+    networks:
+      - soa-network
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+
+
   zookeeper:
     image: confluentinc/cp-zookeeper:7.1.2
     container_name: zookeeper
@@ -104,7 +119,7 @@ services:
       - "9092:9092"
       - "29092:29092"
     environment:
-      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:19092,EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9092,DOCKER://host.docker.internal:29092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:19092,EXTERNAL://kafka:9092,DOCKER://host.docker.internal:29092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,DOCKER:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
       KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
@@ -139,6 +154,32 @@ services:
       CONTROL_CENTER_LOG4J_ROOT_LOGLEVEL: INFO
     networks:
       - soa-network
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    container_name: clickhouse
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+      - clickhouse_log:/var/log/clickhouse-server
+    environment:
+      - CLICKHOUSE_DB=clickhouse_db
+      - CLICKHOUSE_USER=username
+      - CLICKHOUSE_PASSWORD=password
+    networks:
+      - soa-network
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -qO- http://localhost:8123/ping || exit 1" ]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+
 
 
 

@@ -29,18 +29,18 @@ type EventsService interface {
 	SendEvent(context.Context, string, any) error
 }
 
-type PostsServiceServer struct {
+type PostsServiceApp struct {
 	pb.UnimplementedPostsServiceServer
 	PostsService  PostsService
 	EventsService EventsService
 	cfg           *config.Config
 }
 
-func NewPostsServer(pS PostsService, eS EventsService, cfg *config.Config) *PostsServiceServer {
-	return &PostsServiceServer{PostsService: pS, EventsService: eS, cfg: cfg}
+func NewPostsApp(pS PostsService, eS EventsService, cfg *config.Config) *PostsServiceApp {
+	return &PostsServiceApp{PostsService: pS, EventsService: eS, cfg: cfg}
 }
 
-func (s *PostsServiceServer) CreatePost(ctx context.Context, pb *pb.PostDataRequest) (*empty.Empty, error) {
+func (s *PostsServiceApp) CreatePost(ctx context.Context, pb *pb.PostDataRequest) (*empty.Empty, error) {
 	logger := logger.Logger.With("method", "CreatePost")
 	logger.Info("posts grpc request started")
 	userID, err := GetUserID(ctx)
@@ -59,7 +59,7 @@ func (s *PostsServiceServer) CreatePost(ctx context.Context, pb *pb.PostDataRequ
 	return &empty.Empty{}, nil
 }
 
-func (s *PostsServiceServer) DeletePost(ctx context.Context, pb *pb.PostID) (*empty.Empty, error) {
+func (s *PostsServiceApp) DeletePost(ctx context.Context, pb *pb.PostID) (*empty.Empty, error) {
 	logger := logger.Logger.With("method", "DeletePost")
 	logger.Info("posts grpc request started")
 	userID, err := GetUserID(ctx)
@@ -77,7 +77,7 @@ func (s *PostsServiceServer) DeletePost(ctx context.Context, pb *pb.PostID) (*em
 	return &empty.Empty{}, nil
 }
 
-func (s *PostsServiceServer) UpdatePost(ctx context.Context, pb *pb.UpdatePostRequest) (*empty.Empty, error) {
+func (s *PostsServiceApp) UpdatePost(ctx context.Context, pb *pb.UpdatePostRequest) (*empty.Empty, error) {
 	logger := logger.Logger.With("method", "UpdatePost")
 	logger.Info("posts grpc request started")
 	userID, err := GetUserID(ctx)
@@ -95,7 +95,7 @@ func (s *PostsServiceServer) UpdatePost(ctx context.Context, pb *pb.UpdatePostRe
 	return &empty.Empty{}, nil
 }
 
-func (s *PostsServiceServer) GetPost(ctx context.Context, pb *pb.PostID) (*pb.PostDataResponse, error) {
+func (s *PostsServiceApp) GetPost(ctx context.Context, pb *pb.PostID) (*pb.PostDataResponse, error) {
 	logger := logger.Logger.With("method", "GetPost")
 	logger.Info("posts grpc request started")
 
@@ -115,7 +115,7 @@ func (s *PostsServiceServer) GetPost(ctx context.Context, pb *pb.PostID) (*pb.Po
 	return postInfo, nil
 }
 
-func (s *PostsServiceServer) GetPostList(ctx context.Context, pb *pb.PaginatedListRequest) (*pb.ListPostsResponse, error) {
+func (s *PostsServiceApp) GetPostList(ctx context.Context, pb *pb.PaginatedListRequest) (*pb.ListPostsResponse, error) {
 	logger := logger.Logger.With("method", "GetPostList")
 	logger.Info("posts grpc request started")
 
@@ -134,7 +134,7 @@ func (s *PostsServiceServer) GetPostList(ctx context.Context, pb *pb.PaginatedLi
 	return postList, nil
 }
 
-func (s *PostsServiceServer) PostComment(ctx context.Context, pb *pb.PostCommentRequest) (*empty.Empty, error) {
+func (s *PostsServiceApp) PostComment(ctx context.Context, pb *pb.PostCommentRequest) (*empty.Empty, error) {
 	logger := logger.Logger.With("method", "PostComment")
 	logger.Info("posts grpc request started")
 
@@ -158,7 +158,7 @@ func (s *PostsServiceServer) PostComment(ctx context.Context, pb *pb.PostComment
 	return &empty.Empty{}, nil
 }
 
-func (s *PostsServiceServer) PostLike(ctx context.Context, pb *pb.PostID) (*empty.Empty, error) {
+func (s *PostsServiceApp) PostLike(ctx context.Context, pb *pb.PostID) (*empty.Empty, error) {
 	logger := logger.Logger.With("method", "PostLike")
 	logger.Info("posts grpc request started")
 	userID, err := GetUserID(ctx)
@@ -182,7 +182,7 @@ func (s *PostsServiceServer) PostLike(ctx context.Context, pb *pb.PostID) (*empt
 	return &empty.Empty{}, nil
 }
 
-func (s *PostsServiceServer) PostView(ctx context.Context, pb *pb.PostID) (*empty.Empty, error) {
+func (s *PostsServiceApp) PostView(ctx context.Context, pb *pb.PostID) (*empty.Empty, error) {
 	logger := logger.Logger.With("method", "PostView")
 	logger.Info("posts grpc request started")
 	userID, err := GetUserID(ctx)
@@ -205,7 +205,7 @@ func (s *PostsServiceServer) PostView(ctx context.Context, pb *pb.PostID) (*empt
 	return &empty.Empty{}, nil
 }
 
-func (s *PostsServiceServer) GetCommentList(ctx context.Context, pb *pb.PaginatedListRequest) (*pb.ListCommentsResponse, error) {
+func (s *PostsServiceApp) GetCommentList(ctx context.Context, pb *pb.PaginatedListRequest) (*pb.ListCommentsResponse, error) {
 	logger := logger.Logger.With("method", "GetCommentsList")
 	logger.Info("posts grpc request started")
 	userID, err := GetUserID(ctx)

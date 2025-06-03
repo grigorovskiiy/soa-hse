@@ -13,7 +13,7 @@ import (
 	"net"
 )
 
-func NewServer(s *application.PostsServiceServer, cfg *config.Config) (*grpc.Server, net.Listener) {
+func NewServer(s *application.PostsServiceApp, cfg *config.Config) (*grpc.Server, net.Listener) {
 	lis, err := net.Listen("tcp", fmt.Sprintf("%s%s", cfg.PostsServiceHost, cfg.PostsServicePort))
 	if err != nil {
 		logger.Logger.Error(fmt.Sprintf("failed to listen: %s", err.Error()))

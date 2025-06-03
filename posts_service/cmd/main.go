@@ -28,8 +28,8 @@ func main() {
 		fx.Provide(func(r *repository.PRepository) postsservice.PostsRepository {
 			return r
 		}),
-		fx.Provide(postsservice.NewPService),
-		fx.Provide(func(s *postsservice.PService) application.PostsService {
+		fx.Provide(postsservice.NewService),
+		fx.Provide(func(s *postsservice.Service) application.PostsService {
 			return s
 		}),
 		fx.Provide(kafka.NewBaseProducer),
@@ -37,7 +37,7 @@ func main() {
 		fx.Provide(func(s *eventsservice.KafkaService) application.EventsService {
 			return s
 		}),
-		fx.Provide(application.NewPostsServer),
+		fx.Provide(application.NewPostsApp),
 		fx.Provide(server.NewServer),
 		fx.Invoke(server.RunServer),
 	)
